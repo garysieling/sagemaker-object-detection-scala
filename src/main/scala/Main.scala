@@ -135,7 +135,8 @@ object Main {
           f #:: (if (f.isDirectory) f.listFiles().toStream.flatMap(getFileTree)
           else Stream.empty)
 
-        val imagePath = "/Users/gsieling/projects/gary/image/src/main/resources/images/"
+        val imagePath = System.getProperty("user.dir") + "/src/main/resources/images/"
+        println(imagePath)
 
         getFileTree(new File(imagePath)).filter(
           !_.isDirectory
