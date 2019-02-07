@@ -180,6 +180,156 @@ object Main {
           }
         )
 
+        /*
+        Job name
+object-detection-2019-01-30-21-02-07
+ARN
+arn:aws:sagemaker:us-east-1:472846177579:training-job/object-detection-2019-01-30-21-02-07
+Status
+Failed
+View history
+Creation time
+Jan 31, 2019 02:02 UTC
+Last modified time
+Jan 31, 2019 02:05 UTC
+Training duration
+a minute
+Tuning job source/parent
+-
+IAM role ARN
+arn:aws:iam::472846177579:role/service-role/AmazonSageMaker-ExecutionRole-20180912T152967
+Algorithm
+Algorithm ARN
+-
+Training image
+811284229777.dkr.ecr.us-east-1.amazonaws.com/object-detection:latest
+Input mode
+File
+Instance type
+ml.p2.xlarge
+Instance count
+1
+Additional volume size (GB)
+5
+Maximum runtime (s)
+54000
+Volume encryption key
+-
+Input data configuration: train_annotation
+Channel name
+train_annotation
+Input mode
+File
+Content type
+application/x-image
+S3 data type
+S3Prefix
+Compression type
+None
+URI
+s3://sieling.household/train
+Record wrapper type
+None
+S3 data distribution type
+FullyReplicated
+Input data configuration: train
+Channel name
+train
+Input mode
+File
+Content type
+application/x-image
+S3 data type
+S3Prefix
+Compression type
+None
+URI
+s3://sieling.household/train
+Record wrapper type
+None
+S3 data distribution type
+FullyReplicated
+Input data configuration: validation
+Channel name
+validation
+Input mode
+File
+Content type
+application/x-image
+S3 data type
+S3Prefix
+Compression type
+None
+URI
+s3://sieling.household/validation
+Record wrapper type
+None
+S3 data distribution type
+FullyReplicated
+Input data configuration: validation_annotation
+Channel name
+validation_annotation
+Input mode
+File
+Content type
+application/x-image
+S3 data type
+S3Prefix
+Compression type
+None
+URI
+s3://sieling.household/validation_annotation
+Record wrapper type
+None
+S3 data distribution type
+FullyReplicated
+Metrics
+Name	Regex
+train:progress	#progress_metric: host=\S+, completed (\S+) %
+train:smooth_l1	#quality_metric: host=\S+, epoch=\S+, batch=\S+ train smooth_l1 <loss>=(\S+)
+train:cross_entropy	#quality_metric: host=\S+, epoch=\S+, batch=\S+ train cross_entropy <loss>=(\S+)
+train:throughput	#throughput_metric: host=\S+, train throughput=(\S+) records/second
+validation:mAP	#quality_metric: host=\S+, epoch=\S+, validation mAP <score>=\((\S+)\)
+Output data configuration
+S3 output path
+s3://sieling.household/logs
+Output encryption key
+-
+Hyperparameters
+Key	Value
+base_network	vgg-16
+early_stopping	false
+early_stopping_min_epochs	10
+early_stopping_patience	5
+early_stopping_tolerance	0.0
+epochs	200
+freeze_layer_pattern	false
+image_shape	300
+label_width	350
+learning_rate	0.001
+lr_scheduler_factor	0.1
+mini_batch_size	32
+momentum	0.9
+nms_threshold	0.45
+num_classes	4
+num_training_samples	300
+optimizer	sgd
+overlap_threshold	0.5
+use_pretrained_model	1
+weight_decay	0.0005
+Network
+No custom VPC settings applied.
+Monitor
+Access logs for debugging and progress reporting. View metrics to set alarms, send notifications, or take actions.Learn more
+View algorithm metrics
+View logs
+View instance metrics
+
+Output
+S3 model artifact
+s3://sieling.household/logs/object-detection-2019-01-30-21-02-07/output/model.tar.gz */
+         */
+
         request
       })
 
