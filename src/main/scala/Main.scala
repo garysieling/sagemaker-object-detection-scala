@@ -135,8 +135,6 @@ object Main {
       val LOGS_DIR = "logs"
 
       createFolder(bucketName, LOGS_DIR, s3)
-      createFolder(bucketName, TRAIN_DATA_DIR, s3)
-      createFolder(bucketName, TRAIN_ANNOTATION_DIR, s3)
       createFolder(bucketName, VALIDATION_DATA_DIR, s3)
       createFolder(bucketName, VALIDATION_ANNOTATION_DIR, s3)
     }
@@ -188,8 +186,6 @@ object Main {
 
       classes.size
     }
-
-    // upload configuration data for job
 
     // make a training job
     {
@@ -388,68 +384,6 @@ object Main {
 
         request
       })
-
-      //import com.amazonaws.services.sagemaker.
-      /*val estimator = new KMeansSageMakerEstimator(
-        sagemakerRole = IAMRole(roleArn),
-        trainingInstanceType = "ml.p2.xlarge",
-        trainingInstanceCount = 1,
-        endpointInstanceType = "ml.c4.xlarge",
-        endpointInitialInstanceCount = 1)
-        .setK(10).setFeatureDim(784)*/
-
-
     }
-
-    // run a training job
-
-
-
-//    createBucket(bucket, region)
-/*
-    // Put Object
-    s3.putObject(PutObjectRequest.builder.bucket(bucket).key(key).build, RequestBody.fromByteBuffer(getRandomByteBuffer(10 _000)))
-
-
-    // Multipart Upload a file
-    val multipartKey = "multiPartKey"
-    multipartUpload(bucket, multipartKey)
-
-    // List all objects in bucket
-
-    // Use manual pagination
-    var listObjectsReqManual = ListObjectsV2Request.builder.bucket(bucket).maxKeys(1).build
-
-    var done = false
-    while ( {
-      !done
-    }) {
-      val listObjResponse = s3.listObjectsV2(listObjectsReqManual)
-      import scala.collection.JavaConversions._
-      for (content <- listObjResponse.contents) {
-        System.out.println(content.key)
-      }
-      if (listObjResponse.nextContinuationToken == null) done = true
-      listObjectsReqManual = listObjectsReqManual.toBuilder.continuationToken(listObjResponse.nextContinuationToken).build
-    }
-
-    // Build the list objects request
-    val listReq = ListObjectsV2Request.builder.bucket(bucket).maxKeys(1).build
-
-    val listRes = s3.listObjectsV2Paginator(listReq)
-    // Process response pages
-    listRes.stream.flatMap((r) => r.contents.stream).forEach((content) => System.out.println(" Key: " + content.key + " size = " + content.size))
-
-    // Helper method to work with paginated collection of items directly
-    listRes.contents.stream.forEach((content) => System.out.println(" Key: " + content.key + " size = " + content.size))
-
-    // Use simple for loop if stream is not necessary
-    import scala.collection.JavaConversions._
-    for (content <- listRes.contents) {
-      System.out.println(" Key: " + content.key + " size = " + content.size)
-    }
-
-    // Get Object
-    s3.getObject(GetObjectRequest.builder.bucket(bucket).key(key).build, ResponseTransformer.toFile(Paths.get("multiPartKey")))*/
   }
 }
