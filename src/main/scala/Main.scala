@@ -1,34 +1,10 @@
 import java.util
 
-import com.amazonaws.ClientConfiguration
 import com.amazonaws.regions._
 import com.amazonaws.services.s3.AmazonS3Client
 import com.amazonaws.services.sagemaker.AmazonSageMakerAsyncClient
-import com.amazonaws.services.sagemaker.model.CreateTrainingJobRequest
-import org.joda.time.DateTime
 
 object Main {
-  def dataVersion = {"0.1"}
-
-  import com.amazonaws.services.s3.AmazonS3
-  import com.amazonaws.services.s3.model.ObjectMetadata
-  import com.amazonaws.services.s3.model.PutObjectRequest
-  import java.io.ByteArrayInputStream
-  import java.io.InputStream
-
-  // Ultimately this will likely be unnecessary...
-  def createFolder(bucketName: String, folderName: String, client: AmazonS3): Unit = { // create meta-data for your folder and set content-length to 0
-    // From https://stackoverflow.com/questions/11491304/amazon-web-services-aws-s3-java-create-a-sub-directory-object
-    val metadata = new ObjectMetadata
-    metadata.setContentLength(0)
-
-    val emptyContent = new ByteArrayInputStream(new Array[Byte](0))
-
-    val putObjectRequest = new PutObjectRequest(bucketName, folderName + "/", emptyContent, metadata)
-
-    client.putObject(putObjectRequest)
-  }
-
   val TRAIN_DATA_DIR = "train_data"
   val TRAIN_ANNOTATION_DIR = "train_annotation"
   val VALIDATION_DATA_DIR = "validation_data"
@@ -43,8 +19,7 @@ object Main {
       "type" -> "objectdetection",
       "program" -> "alerts",
       "project" -> "cats",
-      "classes" -> "2",
-      "sha" -> dataVersion
+      "classes" -> "2"
     )
 
     // make a bucket for a training job
@@ -126,30 +101,16 @@ object Main {
           )
         })
       s3.setObjectTagging(objectTaggingRequest)
-
-      // make a folder for
-      // training data
-      // training logs
-      // validation data
-      // validation logs
-      val LOGS_DIR = "logs"
-
-      createFolder(bucketName, LOGS_DIR, s3)
-      createFolder(bucketName, VALIDATION_DATA_DIR, s3)
-      createFolder(bucketName, VALIDATION_ANNOTATION_DIR, s3)
     }
 
     // upload images
-    val numClasses = {
+    def uploadDir(dataDir: String, annotationDir: String, imagePath: String) = {
       import java.io.File
 
       // https://stackoverflow.com/questions/2637643/how-do-i-list-all-files-in-a-subdirectory-in-scala
       def getFileTree(f: File): Stream[File] =
         f #:: (if (f.isDirectory) f.listFiles().toStream.flatMap(getFileTree)
         else Stream.empty)
-
-      val imagePath = System.getProperty("user.dir") + "/src/main/resources/images/"
-      println(imagePath)
 
       // TODO multiclass
       val classes = getFileTree(
@@ -170,7 +131,7 @@ object Main {
             val key = fileData._1.getPath.substring(imagePath.length)
             val className = key.split("/")(0)
 
-            s3.putObject(bucketName, TRAIN_DATA_DIR + "/" + key, fileData._1)
+            s3.putObject(bucketName, dataDir + "/" + key, fileData._1)
 
             val lst = fileData._2 + "\t" + (classes.indexOf(className) - 1) + "\t" + key
             lst
@@ -181,11 +142,14 @@ object Main {
           }
         )
 
-      val lstName = TRAIN_ANNOTATION_DIR + "/" + LST_NAME
+      val lstName = annotationDir + "/" + LST_NAME
       s3.putObject(bucketName, lstName, lst)
 
       classes.size
     }
+
+    val numClasses = uploadDir(TRAIN_DATA_DIR, TRAIN_ANNOTATION_DIR, System.getProperty("user.dir") + "/src/main/resources/images/")
+    uploadDir(VALIDATION_DATA_DIR, VALIDATION_ANNOTATION_DIR, System.getProperty("user.dir") + "/src/main/resources/images/")
 
     // make a training job
     {
@@ -249,7 +213,7 @@ object Main {
             {
               val result = new Channel()
 
-              result.setChannelName("train_data")
+              result.setChannelName("train")
               result.setInputMode("File")
               result.setContentType("application/x-image")
               result.setDataSource({
@@ -271,7 +235,7 @@ object Main {
             {
               val result = new Channel()
 
-              result.setChannelName("train_list")
+              result.setChannelName("train_lst")
               result.setInputMode("File")
               result.setContentType("application/x-image")
               result.setDataSource({
