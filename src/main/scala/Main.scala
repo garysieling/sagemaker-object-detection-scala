@@ -29,6 +29,12 @@ object Main {
     client.putObject(putObjectRequest)
   }
 
+  val TRAIN_DATA_DIR = "train_data"
+  val TRAIN_ANNOTATION_DIR = "train_annotation"
+  val VALIDATION_DATA_DIR = "validation_data"
+  val VALIDATION_ANNOTATION_DIR = "validation_annotation"
+  val LST_NAME = "data.lst"
+
   def main(args: Array[String]): Unit = {
     val region = Regions.US_EAST_1
 
@@ -126,11 +132,13 @@ object Main {
       // training logs
       // validation data
       // validation logs
-      createFolder(bucketName, "logs", s3)
-      createFolder(bucketName, "train_data", s3)
-      createFolder(bucketName, "train_annotation", s3)
-      createFolder(bucketName, "validation_data", s3)
-      createFolder(bucketName, "validation_annotation", s3)
+      val LOGS_DIR = "logs"
+
+      createFolder(bucketName, LOGS_DIR, s3)
+      createFolder(bucketName, TRAIN_DATA_DIR, s3)
+      createFolder(bucketName, TRAIN_ANNOTATION_DIR, s3)
+      createFolder(bucketName, VALIDATION_DATA_DIR, s3)
+      createFolder(bucketName, VALIDATION_ANNOTATION_DIR, s3)
     }
 
     // upload images
@@ -145,21 +153,40 @@ object Main {
       val imagePath = System.getProperty("user.dir") + "/src/main/resources/images/"
       println(imagePath)
 
-      getFileTree(new File(imagePath)).filter(
-        !_.isDirectory
-      ).map(
-        file => {
-          val key = file.getPath.substring(imagePath.length)
-          print(key)
-          s3.putObject(bucketName, "train_data/" + key, file)
-        }
-      ).foreach(println)
-
-      getFileTree(new File(imagePath)).filter(
+      // TODO multiclass
+      val classes = getFileTree(
+        new File(imagePath)
+      ).filter(
         _.getAbsolutePath != imagePath
       ).filter(
         _.isDirectory
-      ).size
+      ).map(
+        _.getName
+      ).toList
+
+      val lst =
+        getFileTree(new File(imagePath)).filter(
+          !_.isDirectory
+        ).zipWithIndex.map(
+          (fileData) => {
+            val key = fileData._1.getPath.substring(imagePath.length)
+            val className = key.split("/")(0)
+
+            s3.putObject(bucketName, TRAIN_DATA_DIR + "/" + key, fileData._1)
+
+            val lst = fileData._2 + "\t" + (classes.indexOf(className) - 1) + "\t" + key
+            lst
+          }
+        ).reduce(
+          (a, b) => {
+            a + "\n" + b
+          }
+        )
+
+      val lstName = TRAIN_ANNOTATION_DIR + "/" + LST_NAME
+      s3.putObject(bucketName, lstName, lst)
+
+      classes.size
     }
 
     // upload configuration data for job
@@ -188,23 +215,32 @@ object Main {
         })
 
         val hp = new util.HashMap[String, String]()
-        hp.put("beta_1", "09.9")
+        hp.put("num_classes", numClasses + "")
+
+        hp.put("beta_1", "0.9")
+        hp.put("beta_2", "0.999")
+        hp.put("checkpoint_frequency", "1")
         hp.put("early_stopping", "false")
         hp.put("early_stopping_min_epochs", "10")
         hp.put("early_stopping_patience", "5")
         hp.put("early_stopping_tolerance", "0.0")
-        hp.put("epochs", "200")
-        hp.put("image_shape", "300")
-        hp.put("learning_rate", "0.001")
+        hp.put("epochs", "30")
+        hp.put("eps", "1e-8")
+        hp.put("gamma", "0.9")
+        hp.put("image_shape", "3,224,224")
+        hp.put("learning_rate", "0.1")
         hp.put("lr_scheduler_factor", "0.1")
         hp.put("mini_batch_size", "32")
         hp.put("momentum", "0.9")
-        hp.put("num_classes", numClasses + "")
-        hp.put("num_training_samples", "300")
+        hp.put("multi_label", "1")
+        hp.put("num_layers", "152")
+        hp.put("num_training_samples", "100")
         hp.put("optimizer", "sgd")
-        hp.put("overlap_threshold", "0.5")
+        hp.put("precision_dtype", "float32")
+        hp.put("resize", "300")
         hp.put("use_pretrained_model", "1")
-        hp.put("weight_decay", "0.0005")
+        hp.put("use_weighted_loss", "1")
+        hp.put("weight_decay", "0.0001")
 
         request.setHyperParameters(
           hp
@@ -217,16 +253,38 @@ object Main {
             {
               val result = new Channel()
 
-              result.setChannelName("train")
+              result.setChannelName("train_data")
               result.setInputMode("File")
-              result.setContentType("application/image")
+              result.setContentType("application/x-image")
               result.setDataSource({
                 val result = new DataSource()
 
                 result.setS3DataSource({
                   val s3ds = new S3DataSource
 
-                  s3ds.setS3Uri("s3://" + bucketName + "/train")
+                  s3ds.setS3Uri("s3://" + bucketName + "/" + TRAIN_DATA_DIR)
+                  s3ds.setS3DataType("S3Prefix")
+
+                  s3ds
+                })
+                result
+              })
+
+              result
+            },
+            {
+              val result = new Channel()
+
+              result.setChannelName("train_list")
+              result.setInputMode("File")
+              result.setContentType("application/x-image")
+              result.setDataSource({
+                val result = new DataSource()
+
+                result.setS3DataSource({
+                  val s3ds = new S3DataSource
+
+                  s3ds.setS3Uri("s3://" + bucketName + "/" + TRAIN_ANNOTATION_DIR + "/" + LST_NAME)
                   s3ds.setS3DataType("S3Prefix")
 
                   s3ds
@@ -241,14 +299,36 @@ object Main {
 
               result.setChannelName("validation")
               result.setInputMode("File")
-              result.setContentType("application/image")
+              result.setContentType("application/x-image")
               result.setDataSource({
                 val result = new DataSource()
 
                 result.setS3DataSource({
                   val s3ds = new S3DataSource
 
-                  s3ds.setS3Uri("s3://" + bucketName + "/train")
+                  s3ds.setS3Uri("s3://" + bucketName + "/" + VALIDATION_DATA_DIR)
+                  s3ds.setS3DataType("S3Prefix")
+
+                  s3ds
+                })
+                result
+              })
+
+              result
+            },
+            {
+              val result = new Channel()
+
+              result.setChannelName("validation_lst")
+              result.setInputMode("File")
+              result.setContentType("application/x-image")
+              result.setDataSource({
+                val result = new DataSource()
+
+                result.setS3DataSource({
+                  val s3ds = new S3DataSource
+
+                  s3ds.setS3Uri("s3://" + bucketName + "/" + VALIDATION_ANNOTATION_DIR + "/" + LST_NAME)
                   s3ds.setS3DataType("S3Prefix")
 
                   s3ds
@@ -287,22 +367,6 @@ object Main {
 
           result
         })
-        /*
-        AlgorithmSpecification - Identifies the training algorithm to use.
-
-HyperParameters - Specify these algorithm-specific parameters to influence the quality of the final model. For a list of hyperparameters for each training algorithm provided by Amazon SageMaker, see Algorithms.
-
-InputDataConfig - Describes the training dataset and the Amazon S3 location where it is stored.
-
-OutputDataConfig - Identifies the Amazon S3 location where you want Amazon SageMaker to save the results of model training.
-
-ResourceConfig - Identifies the resources, ML compute instances, and ML storage volumes to deploy for model training. In distributed training, you specify more than one instance.
-
-RoleARN - The Amazon Resource Number (ARN) that Amazon SageMaker assumes to perform tasks on your behalf during model training. You must grant this role the necessary permissions so that Amazon SageMaker can successfully complete model training.
-
-StoppingCondition - Sets a duration for training. Use this parameter to cap model training costs.
-         */
-//        request.setAlgorithmSpecification()
 
         request.setTags(
           {
@@ -321,155 +385,6 @@ StoppingCondition - Sets a duration for training. Use this parameter to cap mode
             result
           }
         )
-
-        /*
-        Job name
-object-detection-2019-01-30-21-02-07
-ARN
-arn:aws:sagemaker:us-east-1:472846177579:training-job/object-detection-2019-01-30-21-02-07
-Status
-Failed
-View history
-Creation time
-Jan 31, 2019 02:02 UTC
-Last modified time
-Jan 31, 2019 02:05 UTC
-Training duration
-a minute
-Tuning job source/parent
--
-IAM role ARN
-arn:aws:iam::472846177579:role/service-role/AmazonSageMaker-ExecutionRole-20180912T152967
-Algorithm
-Algorithm ARN
--
-Training image
-811284229777.dkr.ecr.us-east-1.amazonaws.com/object-detection:latest
-Input mode
-File
-Instance type
-ml.p2.xlarge
-Instance count
-1
-Additional volume size (GB)
-5
-Maximum runtime (s)
-54000
-Volume encryption key
--
-Input data configuration: train_annotation
-Channel name
-train_annotation
-Input mode
-File
-Content type
-application/x-image
-S3 data type
-S3Prefix
-Compression type
-None
-URI
-s3://sieling.household/train
-Record wrapper type
-None
-S3 data distribution type
-FullyReplicated
-Input data configuration: train
-Channel name
-train
-Input mode
-File
-Content type
-application/x-image
-S3 data type
-S3Prefix
-Compression type
-None
-URI
-s3://sieling.household/train
-Record wrapper type
-None
-S3 data distribution type
-FullyReplicated
-Input data configuration: validation
-Channel name
-validation
-Input mode
-File
-Content type
-application/x-image
-S3 data type
-S3Prefix
-Compression type
-None
-URI
-s3://sieling.household/validation
-Record wrapper type
-None
-S3 data distribution type
-FullyReplicated
-Input data configuration: validation_annotation
-Channel name
-validation_annotation
-Input mode
-File
-Content type
-application/x-image
-S3 data type
-S3Prefix
-Compression type
-None
-URI
-s3://sieling.household/validation_annotation
-Record wrapper type
-None
-S3 data distribution type
-FullyReplicated
-Metrics
-Name	Regex
-train:progress	#progress_metric: host=\S+, completed (\S+) %
-train:smooth_l1	#quality_metric: host=\S+, epoch=\S+, batch=\S+ train smooth_l1 <loss>=(\S+)
-train:cross_entropy	#quality_metric: host=\S+, epoch=\S+, batch=\S+ train cross_entropy <loss>=(\S+)
-train:throughput	#throughput_metric: host=\S+, train throughput=(\S+) records/second
-validation:mAP	#quality_metric: host=\S+, epoch=\S+, validation mAP <score>=\((\S+)\)
-Output data configuration
-S3 output path
-s3://sieling.household/logs
-Output encryption key
--
-Hyperparameters
-Key	Value
-base_network	vgg-16
-early_stopping	false
-early_stopping_min_epochs	10
-early_stopping_patience	5
-early_stopping_tolerance	0.0
-epochs	200
-freeze_layer_pattern	false
-image_shape	300
-label_width	350
-learning_rate	0.001
-lr_scheduler_factor	0.1
-mini_batch_size	32
-momentum	0.9
-nms_threshold	0.45
-num_classes	4
-num_training_samples	300
-optimizer	sgd
-overlap_threshold	0.5
-use_pretrained_model	1
-weight_decay	0.0005
-Network
-No custom VPC settings applied.
-Monitor
-Access logs for debugging and progress reporting. View metrics to set alarms, send notifications, or take actions.Learn more
-View algorithm metrics
-View logs
-View instance metrics
-
-Output
-S3 model artifact
-s3://sieling.household/logs/object-detection-2019-01-30-21-02-07/output/model.tar.gz */
 
         request
       })
