@@ -1,3 +1,5 @@
+import java.util
+
 import com.amazonaws.ClientConfiguration
 import com.amazonaws.regions._
 import com.amazonaws.services.sagemaker.AmazonSageMakerAsyncClient
@@ -47,6 +49,8 @@ object Main {
     }
     println(jobId)
 
+    val bucketName = tags("type") + "-" + tags("program") + "-" + tags("project") + "-" + tags("classes") + "-" + jobId
+
     {
       import com.amazonaws.services.s3.model.GetObjectRequest
       import com.amazonaws.services.s3.model.ListObjectsV2Request
@@ -60,7 +64,6 @@ object Main {
       val s3 = builder.build()
 
       // make a bucket for the log output
-      val bucketName = tags("type") + "-" + tags("program") + "-" + tags("project") + "-" + tags("classes") + "-" + jobId
       val bucket = s3.createBucket(bucketName)
 
       val policy =
@@ -160,7 +163,120 @@ object Main {
       jobBuilder.setRegion(region.getName)
       val sagemaker = jobBuilder.build()
       sagemaker.createTrainingJob({
+        import scala.collection.JavaConversions._
+
         val request = new CreateTrainingJobRequest
+
+        request.setTrainingJobName("train-" + bucketName)
+
+        request.setAlgorithmSpecification({
+          val result = new AlgorithmSpecification()
+
+          result.setTrainingImage("811284229777.dkr.ecr.us-east-1.amazonaws.com/image-classification:latest")
+          result.setTrainingInputMode("File")
+
+          result
+        })
+
+        val hp = new util.HashMap[String, String]()
+        hp.put("beta_1", "09.9")
+        request.setHyperParameters(
+          hp
+        )
+
+        request.setRoleArn("arn:aws:iam::472846177579:role/service-role/AmazonSageMaker-ExecutionRole-20180912T152967")
+
+        request.setInputDataConfig(
+          List[Channel](
+            {
+              val result = new Channel()
+
+              result.setChannelName("train")
+              result.setInputMode("File")
+              result.setContentType("application/image")
+              result.setDataSource({
+                val result = new DataSource()
+
+                result.setS3DataSource({
+                  val s3ds = new S3DataSource
+
+                  s3ds.setS3Uri("s3://" + bucketName + "/train")
+                  s3ds.setS3DataType("S3Prefix")
+
+                  s3ds
+                })
+                result
+              })
+
+              result
+            },
+            {
+              val result = new Channel()
+
+              result.setChannelName("validation")
+              result.setInputMode("File")
+              result.setContentType("application/image")
+              result.setDataSource({
+                val result = new DataSource()
+
+                result.setS3DataSource({
+                  val s3ds = new S3DataSource
+
+                  s3ds.setS3Uri("s3://" + bucketName + "/train")
+                  s3ds.setS3DataType("S3Prefix")
+
+                  s3ds
+                })
+                result
+              })
+
+              result
+            }
+          )
+        )
+
+        request.setOutputDataConfig(
+          {
+            val result = new OutputDataConfig
+
+            result.setS3OutputPath("s3://" + bucketName + "/logs")
+            result
+          }
+        )
+
+        request.setResourceConfig({
+          val result = new ResourceConfig
+
+          result.setInstanceCount(1)
+          result.setInstanceType("ml.p2.xlarge")
+          result.setVolumeSizeInGB(1)
+
+          result
+        })
+
+        request.setStoppingCondition({
+          val result = new StoppingCondition
+
+          result.setMaxRuntimeInSeconds(4 * 60 * 60)
+
+          result
+        })
+        /*
+        AlgorithmSpecification - Identifies the training algorithm to use.
+
+HyperParameters - Specify these algorithm-specific parameters to influence the quality of the final model. For a list of hyperparameters for each training algorithm provided by Amazon SageMaker, see Algorithms.
+
+InputDataConfig - Describes the training dataset and the Amazon S3 location where it is stored.
+
+OutputDataConfig - Identifies the Amazon S3 location where you want Amazon SageMaker to save the results of model training.
+
+ResourceConfig - Identifies the resources, ML compute instances, and ML storage volumes to deploy for model training. In distributed training, you specify more than one instance.
+
+RoleARN - The Amazon Resource Number (ARN) that Amazon SageMaker assumes to perform tasks on your behalf during model training. You must grant this role the necessary permissions so that Amazon SageMaker can successfully complete model training.
+
+StoppingCondition - Sets a duration for training. Use this parameter to cap model training costs.
+         */
+//        request.setAlgorithmSpecification()
 
         request.setTags(
           {
@@ -328,7 +444,6 @@ View instance metrics
 Output
 S3 model artifact
 s3://sieling.household/logs/object-detection-2019-01-30-21-02-07/output/model.tar.gz */
-         */
 
         request
       })
