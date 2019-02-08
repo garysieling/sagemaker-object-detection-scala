@@ -2,6 +2,7 @@ import java.util
 
 import com.amazonaws.ClientConfiguration
 import com.amazonaws.regions._
+import com.amazonaws.services.s3.AmazonS3Client
 import com.amazonaws.services.sagemaker.AmazonSageMakerAsyncClient
 import com.amazonaws.services.sagemaker.model.CreateTrainingJobRequest
 import org.joda.time.DateTime
@@ -51,17 +52,19 @@ object Main {
 
     val bucketName = tags("type") + "-" + tags("program") + "-" + tags("project") + "-" + tags("classes") + "-" + jobId
 
+    val s3 = {
+      val builder = AmazonS3Client.builder
+      builder.setRegion(region.getName)
+
+      builder
+    }.build()
+
     {
       import com.amazonaws.services.s3.model.GetObjectRequest
       import com.amazonaws.services.s3.model.ListObjectsV2Request
       import com.amazonaws.services.s3.model.PutObjectRequest
       import com.amazonaws.services.s3.model._
       import com.amazonaws.services.s3.AmazonS3Client
-
-      val builder = AmazonS3Client.builder
-      builder.setRegion(region.getName)
-
-      val s3 = builder.build()
 
       // make a bucket for the log output
       val bucket = s3.createBucket(bucketName)
@@ -128,29 +131,35 @@ object Main {
       createFolder(bucketName, "train_annotation", s3)
       createFolder(bucketName, "validation_data", s3)
       createFolder(bucketName, "validation_annotation", s3)
+    }
 
-      // upload images
-      {
-        import java.io.File
+    // upload images
+    val numClasses = {
+      import java.io.File
 
-        // https://stackoverflow.com/questions/2637643/how-do-i-list-all-files-in-a-subdirectory-in-scala
-        def getFileTree(f: File): Stream[File] =
-          f #:: (if (f.isDirectory) f.listFiles().toStream.flatMap(getFileTree)
-          else Stream.empty)
+      // https://stackoverflow.com/questions/2637643/how-do-i-list-all-files-in-a-subdirectory-in-scala
+      def getFileTree(f: File): Stream[File] =
+        f #:: (if (f.isDirectory) f.listFiles().toStream.flatMap(getFileTree)
+        else Stream.empty)
 
-        val imagePath = System.getProperty("user.dir") + "/src/main/resources/images/"
-        println(imagePath)
+      val imagePath = System.getProperty("user.dir") + "/src/main/resources/images/"
+      println(imagePath)
 
-        getFileTree(new File(imagePath)).filter(
-          !_.isDirectory
-        ).map(
-          file => {
-            val key = file.getPath.substring(imagePath.length)
-            print(key)
-            s3.putObject(bucketName, "train_data/" + key, file)
-          }
-        ).foreach(println)
-      }
+      getFileTree(new File(imagePath)).filter(
+        !_.isDirectory
+      ).map(
+        file => {
+          val key = file.getPath.substring(imagePath.length)
+          print(key)
+          s3.putObject(bucketName, "train_data/" + key, file)
+        }
+      ).foreach(println)
+
+      getFileTree(new File(imagePath)).filter(
+        _.getAbsolutePath != imagePath
+      ).filter(
+        _.isDirectory
+      ).size
     }
 
     // upload configuration data for job
@@ -180,6 +189,23 @@ object Main {
 
         val hp = new util.HashMap[String, String]()
         hp.put("beta_1", "09.9")
+        hp.put("early_stopping", "false")
+        hp.put("early_stopping_min_epochs", "10")
+        hp.put("early_stopping_patience", "5")
+        hp.put("early_stopping_tolerance", "0.0")
+        hp.put("epochs", "200")
+        hp.put("image_shape", "300")
+        hp.put("learning_rate", "0.001")
+        hp.put("lr_scheduler_factor", "0.1")
+        hp.put("mini_batch_size", "32")
+        hp.put("momentum", "0.9")
+        hp.put("num_classes", numClasses + "")
+        hp.put("num_training_samples", "300")
+        hp.put("optimizer", "sgd")
+        hp.put("overlap_threshold", "0.5")
+        hp.put("use_pretrained_model", "1")
+        hp.put("weight_decay", "0.0005")
+
         request.setHyperParameters(
           hp
         )
