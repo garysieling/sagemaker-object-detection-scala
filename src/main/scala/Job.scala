@@ -5,7 +5,7 @@ import com.amazonaws.regions._
 import com.amazonaws.services.s3.AmazonS3Client
 import com.amazonaws.services.sagemaker.AmazonSageMakerAsyncClient
 
-object Main {
+object Job {
   val TRAIN_DATA_DIR = "train_data"
   val TRAIN_ANNOTATION_DIR = "train_annotation"
   val VALIDATION_DATA_DIR = "validation_data"
@@ -19,6 +19,8 @@ object Main {
 
   def main(args: Array[String]): Unit = {
     val region = Regions.US_EAST_1
+
+    val bucket: Option[String] = Some("train-objectdetection-alerts-cats-2-2019-02-08-22-04")
 
     // some tags
     val tags = Map(
@@ -37,7 +39,11 @@ object Main {
     }
     println(jobId)
 
-    val bucketName = tags("type") + "-" + tags("program") + "-" + tags("project") + "-" + tags("classes") + "-" + jobId
+    val bucketName =
+      bucket match {
+        case Some(x: String) => x
+        case None => tags("type") + "-" + tags("program") + "-" + tags("project") + "-" + tags("classes") + "-" + jobId
+      }
 
     val s3 = {
       val builder = AmazonS3Client.builder
@@ -135,7 +141,14 @@ object Main {
             val key = fileData._1.getPath.substring(imagePath.length)
             val className = key.split("/")(0)
 
-            s3.putObject(bucketName, dataDir + "/" + key, fileData._1)
+            bucket match {
+              case Some(x: String) => {
+
+              }
+              case None => {
+                s3.putObject(bucketName, dataDir + "/" + key, fileData._1)
+              }
+            }
 
             val lst = fileData._2 + "\t" + (classes.indexOf(className) - 1) + "\t" + key
             lst
@@ -147,7 +160,14 @@ object Main {
         )
 
       val lstName = annotationDir + "/" + LST_NAME
-      s3.putObject(bucketName, lstName, lst)
+      bucket match {
+        case Some(x: String) => {
+
+        }
+        case None => {
+          s3.putObject(bucketName, lstName, lst)
+        }
+      }
 
       classes
     }
@@ -164,6 +184,8 @@ object Main {
 
       shuffled.splitAt((0.75 * allFiles.size).toInt)
     }
+
+    val numTrainingSamples = files._1.size
 
     val trainingClasses =
       uploadDir(
@@ -226,7 +248,7 @@ object Main {
         hp.put("momentum", "0.9")
         hp.put("multi_label", "1")
         hp.put("num_layers", "152")
-        hp.put("num_training_samples", "100")
+        hp.put("num_training_samples", numTrainingSamples.toString)
         hp.put("optimizer", "sgd")
         hp.put("precision_dtype", "float32")
         hp.put("resize", "300")
