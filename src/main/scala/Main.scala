@@ -1,3 +1,4 @@
+import java.io.File
 import java.util
 
 import com.amazonaws.regions._
@@ -10,6 +11,11 @@ object Main {
   val VALIDATION_DATA_DIR = "validation_data"
   val VALIDATION_ANNOTATION_DIR = "validation_annotation"
   val LST_NAME = "data.lst"
+
+  // https://stackoverflow.com/questions/2637643/how-do-i-list-all-files-in-a-subdirectory-in-scala
+  def getFileTree(f: File): Stream[File] =
+    f #:: (if (f.isDirectory) f.listFiles().toStream.flatMap(getFileTree)
+    else Stream.empty)
 
   def main(args: Array[String]): Unit = {
     val region = Regions.US_EAST_1
@@ -104,13 +110,13 @@ object Main {
     }
 
     // upload images
-    def uploadDir(dataDir: String, annotationDir: String, imagePath: String) = {
+    def uploadDir(
+                   dataDir: String,
+                   annotationDir: String,
+                   imagePath: String,
+                   files: Iterable[File]
+                 ) = {
       import java.io.File
-
-      // https://stackoverflow.com/questions/2637643/how-do-i-list-all-files-in-a-subdirectory-in-scala
-      def getFileTree(f: File): Stream[File] =
-        f #:: (if (f.isDirectory) f.listFiles().toStream.flatMap(getFileTree)
-        else Stream.empty)
 
       // TODO multiclass
       val classes = getFileTree(
@@ -124,9 +130,7 @@ object Main {
       ).toList
 
       val lst =
-        getFileTree(new File(imagePath)).filter(
-          !_.isDirectory
-        ).zipWithIndex.map(
+        files.zipWithIndex.map(
           (fileData) => {
             val key = fileData._1.getPath.substring(imagePath.length)
             val className = key.split("/")(0)
@@ -145,11 +149,39 @@ object Main {
       val lstName = annotationDir + "/" + LST_NAME
       s3.putObject(bucketName, lstName, lst)
 
-      classes.size
+      classes
     }
 
-    val numClasses = uploadDir(TRAIN_DATA_DIR, TRAIN_ANNOTATION_DIR, System.getProperty("user.dir") + "/src/main/resources/images/")
-    uploadDir(VALIDATION_DATA_DIR, VALIDATION_ANNOTATION_DIR, System.getProperty("user.dir") + "/src/main/resources/images/")
+    val imagePath = System.getProperty("user.dir") + "/src/main/resources/images/"
+    val files = {
+      import scala.util.Random
+
+      val allFiles = getFileTree(new File(imagePath)).filter(
+        !_.isDirectory
+      )
+
+      val shuffled = Random.shuffle(allFiles)
+
+      shuffled.splitAt((0.75 * allFiles.size).toInt)
+    }
+
+    val trainingClasses =
+      uploadDir(
+        TRAIN_DATA_DIR,
+        TRAIN_ANNOTATION_DIR,
+        imagePath,
+        files._1
+      )
+
+    val validationClasses =
+      uploadDir(
+        VALIDATION_DATA_DIR,
+        VALIDATION_ANNOTATION_DIR,
+        imagePath,
+        files._2
+      )
+
+    val numClasses = (Set(trainingClasses) ++ Set(validationClasses)).size
 
     // make a training job
     {
