@@ -20,7 +20,7 @@ object Job {
   def main(args: Array[String]): Unit = {
     val region = Regions.US_EAST_1
 
-    val bucket: Option[String] = Some("train-objectdetection-alerts-cats-2-2019-02-08-22-04")
+    val bucket: Option[String] = Some("objectdetection-alerts-cats-2-2019-02-08-22-04")
 
     // some tags
     val tags = Map(
@@ -217,7 +217,9 @@ object Job {
 
         val request = new CreateTrainingJobRequest
 
-        request.setTrainingJobName("train-" + bucketName)
+        request.setTrainingJobName(
+          "train-" + tags("type") + "-" + tags("program") + "-" + tags("project") + "-" + tags("classes") + "-" + jobId
+        )
 
         request.setAlgorithmSpecification({
           val result = new AlgorithmSpecification()
