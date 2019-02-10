@@ -21,16 +21,16 @@ object Job {
 
   def main(args: Array[String]): Unit = {
     val bucket: Option[String] = None // Some("objectdetection-alerts-cats-2-2019-02-08-22-04")
-    val imagePath = "/data/images/kids/photos/out/" //System.getProperty("user.dir") + "/src/main/resources/images/"
+    val imagePath = "/data/images/kids/photos/original/" //System.getProperty("user.dir") + "/src/main/resources/images/"
     val volumeSize = 100
     val width = 224
     val height = 224
-    
+
     // some tags
     val tags = Map(
       "type" -> "objectdetection",
       "program" -> "kiddetector",
-      "project" -> "small"
+      "project" -> "small-both"
     )
 
     val tempPath = "/tmp/trainingJob/"
@@ -298,7 +298,7 @@ object Job {
         hp.put("early_stopping_min_epochs", "10")
         hp.put("early_stopping_patience", "5")
         hp.put("early_stopping_tolerance", "0.0")
-        hp.put("epochs", "30")
+        hp.put("epochs", "150")
         hp.put("eps", "1e-8")
         hp.put("gamma", "0.9")
         hp.put("image_shape", "3," + width + "," + height)
