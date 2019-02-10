@@ -12,23 +12,82 @@ object Job {
   val VALIDATION_ANNOTATION_DIR = "validation_annotation"
   val LST_NAME = "data.lst"
 
+  val region = Regions.US_EAST_1
+
   // https://stackoverflow.com/questions/2637643/how-do-i-list-all-files-in-a-subdirectory-in-scala
   def getFileTree(f: File): Stream[File] =
     f #:: (if (f.isDirectory) f.listFiles().toStream.flatMap(getFileTree)
     else Stream.empty)
 
   def main(args: Array[String]): Unit = {
-    val region = Regions.US_EAST_1
-
-    val bucket: Option[String] = Some("objectdetection-alerts-cats-2-2019-02-08-22-04")
-
+    val bucket: Option[String] = None // Some("objectdetection-alerts-cats-2-2019-02-08-22-04")
+    val imagePath = "/data/images/kids/photos/out/" //System.getProperty("user.dir") + "/src/main/resources/images/"
+    val volumeSize = 100
+    val width = 224
+    val height = 224
+    
     // some tags
     val tags = Map(
       "type" -> "objectdetection",
-      "program" -> "alerts",
-      "project" -> "cats",
-      "classes" -> "2"
+      "program" -> "kiddetector",
+      "project" -> "small"
     )
+
+    val tempPath = "/tmp/trainingJob/"
+    resizeImages(imagePath, tempPath, width, height)
+
+    uploadAndRunJob(bucket, tempPath, volumeSize, width, height, tags)
+  }
+
+  def resizeImages(src: String, dst: String, width: Int, height: Int): Unit = {
+    val images = getFileTree(
+      new File(src)
+    ).filter(
+      _.getAbsolutePath != src
+    ).filter(
+      !_.isDirectory
+    ).map(
+      (file) => (file.getAbsolutePath, dst + file.getAbsolutePath.substring(src.length))
+    )
+
+    {
+      import sys.process._
+      ("rm -rf " + dst).!!
+    }
+
+    images.foreach(
+      (paths: (String, String)) => {
+        import com.sksamuel.scrimage._
+        import com.sksamuel.scrimage.nio.JpegWriter
+
+        println(paths)
+
+        {
+          import sys.process._
+
+          val dstFullPath = (paths._2.substring(0, paths._2.lastIndexOf("/")))
+          ("mkdir -p " + dstFullPath).!!
+        }
+
+        Image.fromFile(
+          new File(paths._1)
+        ).scaleTo(
+          width, height
+        ).output(
+          new File(paths._2)
+        )(JpegWriter()) // specified Jpeg
+      }
+    )
+  }
+
+  def uploadAndRunJob(
+                     bucket: Option[String],
+                     imagePath: String,
+                     volumeSize: Int,
+                     width: Int,
+                     height: Int,
+                     tags: Map[String, String]
+                     ) = {
 
     // make a bucket for a training job
     val jobId = {
@@ -42,7 +101,7 @@ object Job {
     val bucketName =
       bucket match {
         case Some(x: String) => x
-        case None => tags("type") + "-" + tags("program") + "-" + tags("project") + "-" + tags("classes") + "-" + jobId
+        case None => tags("type") + "-" + tags("program") + "-" + tags("project") + "-" + jobId
       }
 
     val s3 = {
@@ -172,7 +231,6 @@ object Job {
       classes
     }
 
-    val imagePath = System.getProperty("user.dir") + "/src/main/resources/images/"
     val files = {
       import scala.util.Random
 
@@ -218,7 +276,7 @@ object Job {
         val request = new CreateTrainingJobRequest
 
         request.setTrainingJobName(
-          "train-" + tags("type") + "-" + tags("program") + "-" + tags("project") + "-" + tags("classes") + "-" + jobId
+          "train-" + tags("type") + "-" + tags("program") + "-" + tags("project") + "-" + jobId
         )
 
         request.setAlgorithmSpecification({
@@ -243,12 +301,12 @@ object Job {
         hp.put("epochs", "30")
         hp.put("eps", "1e-8")
         hp.put("gamma", "0.9")
-        hp.put("image_shape", "3,224,224")
+        hp.put("image_shape", "3," + width + "," + height)
         hp.put("learning_rate", "0.1")
         hp.put("lr_scheduler_factor", "0.1")
         hp.put("mini_batch_size", "32")
         hp.put("momentum", "0.9")
-        hp.put("multi_label", "1")
+        hp.put("multi_label", "0")
         hp.put("num_layers", "152")
         hp.put("num_training_samples", numTrainingSamples.toString)
         hp.put("optimizer", "sgd")
@@ -371,7 +429,7 @@ object Job {
 
           result.setInstanceCount(1)
           result.setInstanceType("ml.p2.xlarge")
-          result.setVolumeSizeInGB(1)
+          result.setVolumeSizeInGB(volumeSize)
 
           result
         })
