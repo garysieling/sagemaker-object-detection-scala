@@ -36,7 +36,7 @@
     {
       "text": "def contents(): String \u003d {\n  val folderContents \u003d (new File(root)).listFiles.filter(_.isDirectory).map( (path) \u003d\u003e (path, path.listFiles.size ) )\n  val folderContentsLines \u003d folderContents.map( (t: (java.io.File, Int)) \u003d\u003e (t._1 + \"\", t._2 + \"\") ).map( (a) \u003d\u003e a._1.substring(23) + \"\\t\" + a._2  )\n  \n  \"%table category\\tcount\\n\" + folderContentsLines.mkString(\"\\n\")\n}\n\nprint(contents)\n",
       "user": "anonymous",
-      "dateUpdated": "2019-02-12 19:40:22.585",
+      "dateUpdated": "2019-02-12 21:19:47.469",
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -795,11 +795,12 @@
       "progressUpdateIntervalMs": 500
     }
   ],
-  "name": "Images",
+  "name": "Image Collection",
   "id": "2E3J7UQ4F",
   "noteParams": {},
   "noteForms": {},
   "angularObjects": {
+    "python:shared_process": [],
     "spark:shared_process": []
   },
   "config": {
