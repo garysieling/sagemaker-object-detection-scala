@@ -3,7 +3,7 @@
     {
       "text": "val tags \u003d List(\n    // woods\n   /* \"cherry flooring\", \"white oak flooring\", \"red oak flooring\", \"black walnut flooring\", \"poplar flooring\", \"pine flooring\", \n    \"water softener\", \"heat pump\",\n    \"hot water expansion tank\",\n    \"fuel oil tank\",\n    \"natural gas meter\",\n    \"plumbing vent\",\n    \"wood dry rot\",\n    \"termite tubes\", \"galvanized steel pipes\", \"terra cotta pipes\", \"copper pipes\",\n    \"granite countertops\",\n    \"formica countertops\",\n    \"marble countertops\",\n    // electrical\n    \"knob and tube wiring\", \"romex wiring\", \"aluminum wiring\",\n    // problems\n    \"asbestos\",\n    \"fire damage\",\n    \"sistered beam\",\n    // exterior\n    \"alumninum siding\", \"asbestos siding\", \"brick exterior walls\", \n    \"stone exterior walls\", \"stucco siding\", \"wooden siding\",\n    // interior features\n    \"glass doorknobs\"*/\n   // \"sump pump\",\n//    \"asbestos paper insulation\",\n  //  \"breaker box\"\n//  \"fios box\"\n//\"pedestal sump pump\"\n\"smoke detector\",\n\"washing machine\",\n\"dryer\"\n)\n\nimport java.io.File\n\nval root \u003d \"/data/images/household/\"\nnew File(root).mkdirs()\n\nval categories \u003d (new File(root)).listFiles.filter(_.isDirectory)\n\n\ntags.filter(!categories.contains(_)).map( (tag) \u003d\u003e new File(root + tag).mkdirs() )\n        \n(new File(root)).listFiles.filter(_.isDirectory).map( (path) \u003d\u003e path + \"\\t\" + path.listFiles.size )",
       "user": "anonymous",
-      "dateUpdated": "2019-02-10 21:29:09.011",
+      "dateUpdated": "2019-02-12 19:40:30.102",
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -28,15 +28,15 @@
       "jobName": "paragraph_1549833449485_-1308984560",
       "id": "20190210-211729_1008575733",
       "dateCreated": "2019-02-10 21:17:29.485",
-      "dateStarted": "2019-02-10 21:29:09.053",
-      "dateFinished": "2019-02-10 21:29:18.570",
+      "dateStarted": "2019-02-12 19:40:30.171",
+      "dateFinished": "2019-02-12 19:40:38.893",
       "status": "FINISHED",
       "progressUpdateIntervalMs": 500
     },
     {
       "text": "def contents(): String \u003d {\n  val folderContents \u003d (new File(root)).listFiles.filter(_.isDirectory).map( (path) \u003d\u003e (path, path.listFiles.size ) )\n  val folderContentsLines \u003d folderContents.map( (t: (java.io.File, Int)) \u003d\u003e (t._1 + \"\", t._2 + \"\") ).map( (a) \u003d\u003e a._1.substring(23) + \"\\t\" + a._2  )\n  \n  \"%table category\\tcount\\n\" + folderContentsLines.mkString(\"\\n\")\n}\n\nprint(contents)\n",
       "user": "anonymous",
-      "dateUpdated": "2019-02-10 21:29:25.512",
+      "dateUpdated": "2019-02-12 19:40:22.585",
       "config": {
         "colWidth": 12.0,
         "fontSize": 9.0,
@@ -800,7 +800,6 @@
   "noteParams": {},
   "noteForms": {},
   "angularObjects": {
-    "python:shared_process": [],
     "spark:shared_process": []
   },
   "config": {

@@ -653,7 +653,7 @@
         }
       },
       "status": "ERROR",
-      "errorReason": "Source \u0027scrimage-core:3.0.0-alpha4\u0027 does not exist",
+      "errorReason": "Cannot fetch dependencies for com.sksamuel.scrimage:scrimage-core:3.0.0-alpha4",
       "interpreterGroup": [
         {
           "name": "spark",
@@ -737,7 +737,7 @@
           "exclusions": []
         },
         {
-          "groupArtifactVersion": "scrimage-core:3.0.0-alpha4",
+          "groupArtifactVersion": "com.sksamuel.scrimage:scrimage-core:3.0.0-alpha4",
           "local": false,
           "exclusions": []
         }
@@ -1414,7 +1414,7 @@
           "exclusions": []
         },
         {
-          "groupArtifactVersion": "com.sksamuel.scrimage:scrimage-core:3.0.0-alpha4",
+          "groupArtifactVersion": "com.sksamuel.scrimage:scrimage-core_2.11:3.0.0-alpha4",
           "local": false,
           "exclusions": []
         }

@@ -1,0 +1,224 @@
+{
+  "paragraphs": [
+    {
+      "text": "import java.io.File\nimport java.util\n\nimport com.amazonaws.regions._\nimport com.amazonaws.services.s3.AmazonS3Client\nimport com.amazonaws.services.sagemaker.AmazonSageMakerAsyncClient\n",
+      "user": "anonymous",
+      "dateUpdated": "2019-02-12 20:23:41.857",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "import java.io.File\nimport java.util\nimport com.amazonaws.regions._\nimport com.amazonaws.services.s3.AmazonS3Client\nimport com.amazonaws.services.sagemaker.AmazonSageMakerAsyncClient\n"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1550000539286_1996418467",
+      "id": "20190212-194219_1382212482",
+      "dateCreated": "2019-02-12 19:42:19.286",
+      "dateStarted": "2019-02-12 20:23:41.867",
+      "dateFinished": "2019-02-12 20:23:41.971",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "  val TRAIN_DATA_DIR \u003d \"train_data\"\n  val TRAIN_ANNOTATION_DIR \u003d \"train_annotation\"\n  val VALIDATION_DATA_DIR \u003d \"validation_data\"\n  val VALIDATION_ANNOTATION_DIR \u003d \"validation_annotation\"\n  val LST_NAME \u003d \"data.lst\"\n\n  val region \u003d Regions.US_EAST_1",
+      "user": "anonymous",
+      "dateUpdated": "2019-02-12 20:23:43.717",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "TRAIN_DATA_DIR: String \u003d train_data\nTRAIN_ANNOTATION_DIR: String \u003d train_annotation\nVALIDATION_DATA_DIR: String \u003d validation_data\nVALIDATION_ANNOTATION_DIR: String \u003d validation_annotation\nLST_NAME: String \u003d data.lst\nregion: com.amazonaws.regions.Regions \u003d US_EAST_1\n"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1550001094139_585425737",
+      "id": "20190212-195134_168717506",
+      "dateCreated": "2019-02-12 19:51:34.139",
+      "dateStarted": "2019-02-12 20:23:43.729",
+      "dateFinished": "2019-02-12 20:23:43.862",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": " // https://stackoverflow.com/questions/2637643/how-do-i-list-all-files-in-a-subdirectory-in-scala\n  def getFileTree(f: File): Stream[File] \u003d\n    f #:: (if (f.isDirectory) f.listFiles().toStream.flatMap(getFileTree)\n    else Stream.empty)\n",
+      "user": "anonymous",
+      "dateUpdated": "2019-02-12 20:23:45.721",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "getFileTree: (f: java.io.File)Stream[java.io.File]\n"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1550002570214_1218173696",
+      "id": "20190212-201610_834239342",
+      "dateCreated": "2019-02-12 20:16:10.214",
+      "dateStarted": "2019-02-12 20:23:45.728",
+      "dateFinished": "2019-02-12 20:23:46.194",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "\n  def uploadAndRunJob(\n                     bucket: Option[String],\n                     imagePath: String,\n                     volumeSize: Int,\n                     width: Int,\n                     height: Int,\n                     tags: Map[String, String]\n                     ) \u003d {\n\n    // make a bucket for a training job\n    val jobId \u003d {\n      import org.joda.time.format.DateTimeFormat\n      val fmt \u003d DateTimeFormat.forPattern(\"yyyy-MM-dd-HH-mm\")\n\n      fmt.print(System.currentTimeMillis())\n    }\n    println(jobId)\n\n    val bucketName \u003d\n      bucket match {\n        case Some(x: String) \u003d\u003e x\n        case None \u003d\u003e tags(\"type\") + \"-\" + tags(\"program\") + \"-\" + tags(\"project\") + \"-\" + jobId\n      }\n\n    val s3 \u003d {\n      val builder \u003d AmazonS3Client.builder\n      builder.setRegion(region.getName)\n\n      builder\n    }.build()\n\n    {\n      import com.amazonaws.services.s3.model.GetObjectRequest\n      import com.amazonaws.services.s3.model.ListObjectsV2Request\n      import com.amazonaws.services.s3.model.PutObjectRequest\n      import com.amazonaws.services.s3.model._\n      import com.amazonaws.services.s3.AmazonS3Client\n\n      // make a bucket for the log output\n      val bucket \u003d s3.createBucket(bucketName)\n\n      val policy \u003d\n        s\"\"\"{\n           |  \"Id\": \"Policy${jobId}\",\n           |  \"Version\": \"2012-10-17\",\n           |  \"Statement\": [\n           |    {\n           |      \"Sid\": \"Stmt${jobId}\",\n           |      \"Action\": [\n           |        \"s3:GetObject\",\n           |        \"s3:PutObject\"\n           |      ],\n           |      \"Effect\": \"Allow\",\n           |      \"Resource\": \"arn:aws:s3:::${bucketName}/*\",\n           |      \"Principal\": {\n           |        \"AWS\": [\n           |          \"arn:aws:iam::472846177579:user/sagemaker_user\"\n           |        ]\n           |      }\n           |    }\n           |  ]\n           |}\"\"\".stripMargin\n\n      println(policy)\n      s3.setBucketPolicy(bucketName, policy)\n      s3.setPublicAccessBlock({\n        val cfg \u003d new PublicAccessBlockConfiguration\n        cfg.setBlockPublicAcls(true)\n        cfg.setBlockPublicPolicy(true)\n        cfg.setIgnorePublicAcls(true)\n        cfg.setRestrictPublicBuckets(true)\n\n        val req \u003d new SetPublicAccessBlockRequest()\n        req.setBucketName(bucketName)\n        req.setPublicAccessBlockConfiguration(cfg)\n\n        req\n      })\n\n      val objectTaggingRequest \u003d new SetObjectTaggingRequest(\n        bucketName,\n        \"\",\n        {\n          import scala.collection.JavaConversions._\n\n          new ObjectTagging(\n            tags.map(\n              (kv) \u003d\u003e new Tag(kv._1, kv._2)\n            ).toList\n          )\n        })\n      s3.setObjectTagging(objectTaggingRequest)\n    }\n\n    // upload images\n    def uploadDir(\n                   dataDir: String,\n                   annotationDir: String,\n                   imagePath: String,\n                   files: Iterable[File]\n                 ) \u003d {\n      import java.io.File\n\n      // TODO multiclass\n      val classes \u003d getFileTree(\n        new File(imagePath)\n      ).filter(\n        _.getAbsolutePath !\u003d imagePath\n      ).filter(\n        _.isDirectory\n      ).map(\n        _.getName\n      ).toList\n\n      val lst \u003d\n        files.zipWithIndex.map(\n          (fileData) \u003d\u003e {\n            val key \u003d fileData._1.getPath.substring(imagePath.length)\n            val className \u003d key.split(\"/\")(0)\n\n            bucket match {\n              case Some(x: String) \u003d\u003e {\n\n              }\n              case None \u003d\u003e {\n                s3.putObject(bucketName, dataDir + \"/\" + key, fileData._1)\n              }\n            }\n\n            val lst \u003d fileData._2 + \"\\t\" + (classes.indexOf(className) - 1) + \"\\t\" + key\n            lst\n          }\n        ).reduce(\n          (a, b) \u003d\u003e {\n            a + \"\\n\" + b\n          }\n        )\n\n      val lstName \u003d annotationDir + \"/\" + LST_NAME\n      bucket match {\n        case Some(x: String) \u003d\u003e {\n\n        }\n        case None \u003d\u003e {\n          s3.putObject(bucketName, lstName, lst)\n        }\n      }\n\n      classes\n    }\n\n    val files \u003d {\n      import scala.util.Random\n\n      val allFiles \u003d getFileTree(new File(imagePath)).filter(\n        !_.isDirectory\n      )\n\n      val shuffled \u003d Random.shuffle(allFiles)\n\n      shuffled.splitAt((0.75 * allFiles.size).toInt)\n    }\n\n    val numTrainingSamples \u003d files._1.size\n\n    val trainingClasses \u003d\n      uploadDir(\n        TRAIN_DATA_DIR,\n        TRAIN_ANNOTATION_DIR,\n        imagePath,\n        files._1\n      )\n\n    val validationClasses \u003d\n      uploadDir(\n        VALIDATION_DATA_DIR,\n        VALIDATION_ANNOTATION_DIR,\n        imagePath,\n        files._2\n      )\n\n    val numClasses \u003d (Set(trainingClasses) ++ Set(validationClasses)).size\n\n    // make a training job\n    {\n      import com.amazonaws.services.sagemaker.model._\n\n      val jobBuilder \u003d AmazonSageMakerAsyncClient.asyncBuilder()\n      jobBuilder.setRegion(region.getName)\n      val sagemaker \u003d jobBuilder.build()\n      sagemaker.createTrainingJob({\n        import scala.collection.JavaConversions._\n\n        val request \u003d new CreateTrainingJobRequest\n\n        request.setTrainingJobName(\n          \"train-\" + tags(\"type\") + \"-\" + tags(\"program\") + \"-\" + tags(\"project\") + \"-\" + jobId\n        )\n\n        request.setAlgorithmSpecification({\n          val result \u003d new AlgorithmSpecification()\n\n          result.setTrainingImage(\"811284229777.dkr.ecr.us-east-1.amazonaws.com/image-classification:latest\")\n          result.setTrainingInputMode(\"File\")\n\n          result\n        })\n\n        val hp \u003d new util.HashMap[String, String]()\n        hp.put(\"num_classes\", numClasses + \"\")\n\n        hp.put(\"beta_1\", \"0.9\")\n        hp.put(\"beta_2\", \"0.999\")\n        hp.put(\"checkpoint_frequency\", \"1\")\n        hp.put(\"early_stopping\", \"false\")\n        hp.put(\"early_stopping_min_epochs\", \"10\")\n        hp.put(\"early_stopping_patience\", \"5\")\n        hp.put(\"early_stopping_tolerance\", \"0.0\")\n        hp.put(\"epochs\", \"150\")\n        hp.put(\"eps\", \"1e-8\")\n        hp.put(\"gamma\", \"0.9\")\n        hp.put(\"image_shape\", \"3,\" + width + \",\" + height)\n        hp.put(\"learning_rate\", \"0.1\")\n        hp.put(\"lr_scheduler_factor\", \"0.1\")\n        hp.put(\"mini_batch_size\", \"32\")\n        hp.put(\"momentum\", \"0.9\")\n        hp.put(\"multi_label\", \"0\")\n        hp.put(\"num_layers\", \"152\")\n        hp.put(\"num_training_samples\", numTrainingSamples.toString)\n        hp.put(\"optimizer\", \"sgd\")\n        hp.put(\"precision_dtype\", \"float32\")\n        hp.put(\"resize\", \"300\")\n        hp.put(\"use_pretrained_model\", \"1\")\n        hp.put(\"use_weighted_loss\", \"1\")\n        hp.put(\"weight_decay\", \"0.0001\")\n\n        request.setHyperParameters(\n          hp\n        )\n\n        request.setRoleArn(\"arn:aws:iam::472846177579:role/service-role/AmazonSageMaker-ExecutionRole-20180912T152967\")\n\n        request.setInputDataConfig(\n          List[Channel](\n            {\n              val result \u003d new Channel()\n\n              result.setChannelName(\"train\")\n              result.setInputMode(\"File\")\n              result.setContentType(\"application/x-image\")\n              result.setDataSource({\n                val result \u003d new DataSource()\n\n                result.setS3DataSource({\n                  val s3ds \u003d new S3DataSource\n\n                  s3ds.setS3Uri(\"s3://\" + bucketName + \"/\" + TRAIN_DATA_DIR)\n                  s3ds.setS3DataType(\"S3Prefix\")\n\n                  s3ds\n                })\n                result\n              })\n\n              result\n            },\n            {\n              val result \u003d new Channel()\n\n              result.setChannelName(\"train_lst\")\n              result.setInputMode(\"File\")\n              result.setContentType(\"application/x-image\")\n              result.setDataSource({\n                val result \u003d new DataSource()\n\n                result.setS3DataSource({\n                  val s3ds \u003d new S3DataSource\n\n                  s3ds.setS3Uri(\"s3://\" + bucketName + \"/\" + TRAIN_ANNOTATION_DIR + \"/\" + LST_NAME)\n                  s3ds.setS3DataType(\"S3Prefix\")\n\n                  s3ds\n                })\n                result\n              })\n\n              result\n            },\n            {\n              val result \u003d new Channel()\n\n              result.setChannelName(\"validation\")\n              result.setInputMode(\"File\")\n              result.setContentType(\"application/x-image\")\n              result.setDataSource({\n                val result \u003d new DataSource()\n\n                result.setS3DataSource({\n                  val s3ds \u003d new S3DataSource\n\n                  s3ds.setS3Uri(\"s3://\" + bucketName + \"/\" + VALIDATION_DATA_DIR)\n                  s3ds.setS3DataType(\"S3Prefix\")\n\n                  s3ds\n                })\n                result\n              })\n\n              result\n            },\n            {\n              val result \u003d new Channel()\n\n              result.setChannelName(\"validation_lst\")\n              result.setInputMode(\"File\")\n              result.setContentType(\"application/x-image\")\n              result.setDataSource({\n                val result \u003d new DataSource()\n\n                result.setS3DataSource({\n                  val s3ds \u003d new S3DataSource\n\n                  s3ds.setS3Uri(\"s3://\" + bucketName + \"/\" + VALIDATION_ANNOTATION_DIR + \"/\" + LST_NAME)\n                  s3ds.setS3DataType(\"S3Prefix\")\n\n                  s3ds\n                })\n                result\n              })\n\n              result\n            }\n          )\n        )\n\n        request.setOutputDataConfig(\n          {\n            val result \u003d new OutputDataConfig\n\n            result.setS3OutputPath(\"s3://\" + bucketName + \"/logs\")\n            result\n          }\n        )\n\n        request.setResourceConfig({\n          val result \u003d new ResourceConfig\n\n          result.setInstanceCount(1)\n          result.setInstanceType(\"ml.p2.xlarge\")\n          result.setVolumeSizeInGB(volumeSize)\n\n          result\n        })\n\n        request.setStoppingCondition({\n          val result \u003d new StoppingCondition\n\n          result.setMaxRuntimeInSeconds(4 * 60 * 60)\n\n          result\n        })\n\n        request.setTags(\n          {\n            import scala.collection.JavaConversions._\n\n            val result: java.util.Collection[Tag] \u003d tags.map(\n              (kv) \u003d\u003e {\n                val t \u003d new Tag()\n\n                t.setKey(kv._1)\n                t.setValue(kv._2)\n\n                t\n              })\n\n            result\n          }\n        )\n\n        request\n      })\n    }\n  }",
+      "user": "anonymous",
+      "dateUpdated": "2019-02-12 20:33:33.984",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "uploadAndRunJob: (bucket: Option[String], imagePath: String, volumeSize: Int, width: Int, height: Int, tags: Map[String,String])com.amazonaws.services.sagemaker.model.CreateTrainingJobResult\n"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1550002578203_2024001498",
+      "id": "20190212-201618_1881002882",
+      "dateCreated": "2019-02-12 20:16:18.203",
+      "dateStarted": "2019-02-12 20:33:33.991",
+      "dateFinished": "2019-02-12 20:33:34.704",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "  def uploadAndTrain(tags: Map[String, String], imagePath: String, volumeSize: Int \u003d 100, width: Int \u003d 224, height: Int \u003d 224): Unit \u003d {\n    val tempPath \u003d \"/tmp/trainingJob/\"\n    resizeImages(imagePath, tempPath, width, height)\n\n    uploadAndRunJob(None, tempPath, volumeSize, width, height, tags)\n  }\n\n  def train(tags: Map[String, String], bucket: Some[String], imagePath: String, volumeSize: Int \u003d 100, width: Int \u003d 224, height: Int \u003d 224): Unit \u003d {\n    val tempPath \u003d \"/tmp/trainingJob/\"\n    resizeImages(imagePath, tempPath, width, height)\n\n    uploadAndRunJob(bucket, tempPath, volumeSize, width, height, tags)\n  }\n",
+      "user": "anonymous",
+      "dateUpdated": "2019-02-12 20:34:34.676",
+      "config": {
+        "colWidth": 12.0,
+        "fontSize": 9.0,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TEXT",
+            "data": "uploadAndTrain: (tags: Map[String,String], imagePath: String, volumeSize: Int, width: Int, height: Int)Unit\ntrain: (tags: Map[String,String], bucket: Some[String], imagePath: String, volumeSize: Int, width: Int, height: Int)Unit\n"
+          }
+        ]
+      },
+      "apps": [],
+      "jobName": "paragraph_1550002587430_-1752693209",
+      "id": "20190212-201627_1776953195",
+      "dateCreated": "2019-02-12 20:16:27.430",
+      "dateStarted": "2019-02-12 20:34:34.686",
+      "dateFinished": "2019-02-12 20:34:34.796",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "user": "anonymous",
+      "config": {},
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "jobName": "paragraph_1550003446574_-936326870",
+      "id": "20190212-203046_1715274305",
+      "dateCreated": "2019-02-12 20:30:46.574",
+      "status": "READY",
+      "progressUpdateIntervalMs": 500
+    }
+  ],
+  "name": "Start Sagemaker Job",
+  "id": "2E6B6YW9H",
+  "noteParams": {},
+  "noteForms": {},
+  "angularObjects": {
+    "spark:shared_process": []
+  },
+  "config": {
+    "isZeppelinNotebookCronEnable": false
+  },
+  "info": {}
+}
