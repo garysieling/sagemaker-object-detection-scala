@@ -21,63 +21,19 @@ object Job {
 
   def main(args: Array[String]): Unit = {
     val bucket: Option[String] = None // Some("objectdetection-alerts-cats-2-2019-02-08-22-04")
-    val imagePath = "/data/images/kids/photos/original/" //System.getProperty("user.dir") + "/src/main/resources/images/"
     val volumeSize = 100
     val width = 224
     val height = 224
 
-    // some tags
     val tags = Map(
       "type" -> "objectdetection",
-      "program" -> "kiddetector",
+      "program" -> "alerts",
       "project" -> "small-both"
     )
 
-    val tempPath = "/tmp/trainingJob/"
-    resizeImages(imagePath, tempPath, width, height)
+    val tempPath = "/data/images/kids/photos/out/"
 
     uploadAndRunJob(bucket, tempPath, volumeSize, width, height, tags)
-  }
-
-  def resizeImages(src: String, dst: String, width: Int, height: Int): Unit = {
-    val images = getFileTree(
-      new File(src)
-    ).filter(
-      _.getAbsolutePath != src
-    ).filter(
-      !_.isDirectory
-    ).map(
-      (file) => (file.getAbsolutePath, dst + file.getAbsolutePath.substring(src.length))
-    )
-
-    {
-      import sys.process._
-      ("rm -rf " + dst).!!
-    }
-
-    images.foreach(
-      (paths: (String, String)) => {
-        import com.sksamuel.scrimage._
-        import com.sksamuel.scrimage.nio.JpegWriter
-
-        println(paths)
-
-        {
-          import sys.process._
-
-          val dstFullPath = (paths._2.substring(0, paths._2.lastIndexOf("/")))
-          ("mkdir -p " + dstFullPath).!!
-        }
-
-        Image.fromFile(
-          new File(paths._1)
-        ).scaleTo(
-          width, height
-        ).output(
-          new File(paths._2)
-        )(JpegWriter()) // specified Jpeg
-      }
-    )
   }
 
   def uploadAndRunJob(
@@ -306,7 +262,7 @@ object Job {
         hp.put("lr_scheduler_factor", "0.1")
         hp.put("mini_batch_size", "32")
         hp.put("momentum", "0.9")
-        hp.put("multi_label", "0")
+        hp.put("multi_label", "1")
         hp.put("num_layers", "152")
         hp.put("num_training_samples", numTrainingSamples.toString)
         hp.put("optimizer", "sgd")
@@ -441,24 +397,6 @@ object Job {
 
           result
         })
-
-        request.setTags(
-          {
-            import scala.collection.JavaConversions._
-
-            val result: java.util.Collection[Tag] = tags.map(
-              (kv) => {
-                val t = new Tag()
-
-                t.setKey(kv._1)
-                t.setValue(kv._2)
-
-                t
-              })
-
-            result
-          }
-        )
 
         request
       })
