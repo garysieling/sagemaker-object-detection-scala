@@ -652,7 +652,8 @@
           "type": "number"
         }
       },
-      "status": "READY",
+      "status": "ERROR",
+      "errorReason": "Source \u0027scrimage-core:3.0.0-alpha4\u0027 does not exist",
       "interpreterGroup": [
         {
           "name": "spark",
@@ -715,7 +716,32 @@
           "defaultInterpreter": false
         }
       ],
-      "dependencies": [],
+      "dependencies": [
+        {
+          "groupArtifactVersion": "com.amazonaws:aws-java-sdk-s3:1.11.491",
+          "local": false
+        },
+        {
+          "groupArtifactVersion": "com.amazonaws:aws-java-sdk-sagemaker:1.11.491",
+          "local": false,
+          "exclusions": []
+        },
+        {
+          "groupArtifactVersion": "com.amazonaws:aws-java-sdk-sagemakerruntime:1.11.491",
+          "local": false,
+          "exclusions": []
+        },
+        {
+          "groupArtifactVersion": "com.amazonaws:aws-java-sdk-pricing:1.11.491",
+          "local": false,
+          "exclusions": []
+        },
+        {
+          "groupArtifactVersion": "scrimage-core:3.0.0-alpha4",
+          "local": false,
+          "exclusions": []
+        }
+      ],
       "option": {
         "remote": true,
         "port": -1,
@@ -1367,10 +1393,37 @@
           }
         }
       ],
-      "dependencies": [],
+      "dependencies": [
+        {
+          "groupArtifactVersion": "com.amazonaws:aws-java-sdk-s3:1.11.491",
+          "local": false
+        },
+        {
+          "groupArtifactVersion": "com.amazonaws:aws-java-sdk-sagemaker:1.11.491",
+          "local": false,
+          "exclusions": []
+        },
+        {
+          "groupArtifactVersion": "com.amazonaws:aws-java-sdk-sagemakerruntime:1.11.491",
+          "local": false,
+          "exclusions": []
+        },
+        {
+          "groupArtifactVersion": "com.amazonaws:aws-java-sdk-pricing:1.11.491",
+          "local": false,
+          "exclusions": []
+        },
+        {
+          "groupArtifactVersion": "com.sksamuel.scrimage:scrimage-core:3.0.0-alpha4",
+          "local": false,
+          "exclusions": []
+        }
+      ],
       "option": {
         "remote": true,
         "port": -1,
+        "perNote": "shared",
+        "perUser": "shared",
         "isExistingProcess": false,
         "setPermission": false,
         "owners": [],
