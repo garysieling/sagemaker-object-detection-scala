@@ -1,0 +1,90 @@
+Docker entrypoint called with argument(s): train
+2019-02-10 15:55:48 Reading default configuration from /opt/amazon/lib/python2.7/site-packages/image_classification/default-input.json: {u'beta_1': 0.9, u'gamma': 0.9, u'beta_2': 0.999, u'optimizer': u'sgd', u'use_pretrained_model': 0, u'eps': 1e-08, u'epochs': 30, u'lr_scheduler_factor': 0.1, u'num_layers': 152, u'image_shape': u'3,224,224', u'precision_dtype': u'float32', u'mini_batch_size': 32, u'weight_decay': 0.0001, u'learning_rate': 0.1, u'momentum': 0}
+[02/10/2019 15:55:48 INFO 140213022148416] Reading default configuration from /opt/amazon/lib/python2.7/site-packages/image_classification/default-input.json: {u'beta_1': 0.9, u'gamma': 0.9, u'beta_2': 0.999, u'optimizer': u'sgd', u'use_pretrained_model': 0, u'eps': 1e-08, u'epochs': 30, u'lr_scheduler_factor': 0.1, u'num_layers': 152, u'image_shape': u'3,224,224', u'precision_dtype': u'float32', u'mini_batch_size': 32, u'weight_decay': 0.0001, u'learning_rate': 0.1, u'momentum': 0}
+2019-02-10 15:55:48 Reading provided configuration from /opt/ml/input/config/hyperparameters.json: {u'num_layers': u'152', u'early_stopping_min_epochs': u'10', u'epochs': u'30', u'lr_scheduler_factor': u'0.1', u'multi_label': u'1', u'weight_decay': u'0.0001', u'use_weighted_loss': u'1', u'resize': u'300', u'early_stopping_patience': u'5', u'momentum': u'0.9', u'optimizer': u'sgd', u'early_stopping_tolerance': u'0.0', u'learning_rate': u'0.1', u'precision_dtype': u'float32', u'mini_batch_size': u'32', u'early_stopping': u'false', u'num_classes': u'1', u'beta_1': u'0.9', u'beta_2': u'0.999', u'eps': u'1e-8', u'checkpoint_frequency': u'1', u'num_training_samples': u'653', u'image_shape': u'3,224,224', u'use_pretrained_model': u'1', u'gamma': u'0.9'}
+[02/10/2019 15:55:48 INFO 140213022148416] Reading provided configuration from /opt/ml/input/config/hyperparameters.json: {u'num_layers': u'152', u'early_stopping_min_epochs': u'10', u'epochs': u'30', u'lr_scheduler_factor': u'0.1', u'multi_label': u'1', u'weight_decay': u'0.0001', u'use_weighted_loss': u'1', u'resize': u'300', u'early_stopping_patience': u'5', u'momentum': u'0.9', u'optimizer': u'sgd', u'early_stopping_tolerance': u'0.0', u'learning_rate': u'0.1', u'precision_dtype': u'float32', u'mini_batch_size': u'32', u'early_stopping': u'false', u'num_classes': u'1', u'beta_1': u'0.9', u'beta_2': u'0.999', u'eps': u'1e-8', u'checkpoint_frequency': u'1', u'num_training_samples': u'653', u'image_shape': u'3,224,224', u'use_pretrained_model': u'1', u'gamma': u'0.9'}
+2019-02-10 15:55:48 Final configuration: {u'multi_label': u'1', u'early_stopping_min_epochs': u'10', u'epochs': u'30', u'lr_scheduler_factor': u'0.1', u'num_layers': u'152', u'weight_decay': u'0.0001', u'use_pretrained_model': u'1', u'early_stopping': u'false', u'early_stopping_patience': u'5', u'momentum': u'0.9', u'optimizer': u'sgd', u'early_stopping_tolerance': u'0.0', u'learning_rate': u'0.1', u'use_weighted_loss': u'1', u'num_classes': u'1', u'precision_dtype': u'float32', u'mini_batch_size': u'32', u'resize': u'300', u'beta_1': u'0.9', u'beta_2': u'0.999', u'eps': u'1e-8', u'checkpoint_frequency': u'1', u'num_training_samples': u'653', u'image_shape': u'3,224,224', u'gamma': u'0.9'}
+[02/10/2019 15:55:48 INFO 140213022148416] Final configuration: {u'multi_label': u'1', u'early_stopping_min_epochs': u'10', u'epochs': u'30', u'lr_scheduler_factor': u'0.1', u'num_layers': u'152', u'weight_decay': u'0.0001', u'use_pretrained_model': u'1', u'early_stopping': u'false', u'early_stopping_patience': u'5', u'momentum': u'0.9', u'optimizer': u'sgd', u'early_stopping_tolerance': u'0.0', u'learning_rate': u'0.1', u'use_weighted_loss': u'1', u'num_classes': u'1', u'precision_dtype': u'float32', u'mini_batch_size': u'32', u'resize': u'300', u'beta_1': u'0.9', u'beta_2': u'0.999', u'eps': u'1e-8', u'checkpoint_frequency': u'1', u'num_training_samples': u'653', u'image_shape': u'3,224,224', u'gamma': u'0.9'}
+2019-02-10 15:55:48 Creating record files for data.lst
+[02/10/2019 15:55:48 INFO 140213022148416] Creating record files for data.lst
+2019-02-10 15:55:50 Done creating record files...
+[02/10/2019 15:55:50 INFO 140213022148416] Done creating record files...
+[02/10/2019 15:55:50 INFO 140213022148416] Creating record files for data.lst
+2019-02-10 15:55:50 Creating record files for data.lst
+2019-02-10 15:55:50 Done creating record files...
+[02/10/2019 15:55:50 INFO 140213022148416] Done creating record files...
+2019-02-10 15:55:50 Using pretrained model for initalizing weights and transfer learning
+[02/10/2019 15:55:50 INFO 140213022148416] Using pretrained model for initalizing weights and transfer learning
+[02/10/2019 15:55:50 INFO 140213022148416] ---- Parameters ----
+2019-02-10 15:55:50 ---- Parameters ----
+2019-02-10 15:55:50 num_layers: 152
+[02/10/2019 15:55:50 INFO 140213022148416] num_layers: 152
+2019-02-10 15:55:50 data type: <type 'numpy.float32'>
+[02/10/2019 15:55:50 INFO 140213022148416] data type: <type 'numpy.float32'>
+2019-02-10 15:55:50 epochs: 30
+[02/10/2019 15:55:50 INFO 140213022148416] epochs: 30
+2019-02-10 15:55:50 image resize size: 300
+[02/10/2019 15:55:50 INFO 140213022148416] image resize size: 300
+2019-02-10 15:55:50 optimizer: sgd
+[02/10/2019 15:55:50 INFO 140213022148416] optimizer: sgd
+2019-02-10 15:55:50 momentum: 0.900000
+[02/10/2019 15:55:50 INFO 140213022148416] momentum: 0.900000
+2019-02-10 15:55:50 weight_decay: 0.000100
+[02/10/2019 15:55:50 INFO 140213022148416] weight_decay: 0.000100
+2019-02-10 15:55:50 learning_rate: 0.100000
+[02/10/2019 15:55:50 INFO 140213022148416] learning_rate: 0.100000
+2019-02-10 15:55:50 lr_scheduler_factor: 0.100000
+[02/10/2019 15:55:50 INFO 140213022148416] lr_scheduler_factor: 0.100000
+2019-02-10 15:55:50 lr_scheduler_factor defined without lr_scheduler_step, will be ignored...
+[02/10/2019 15:55:50 INFO 140213022148416] lr_scheduler_factor defined without lr_scheduler_step, will be ignored...
+2019-02-10 15:55:50 mini_batch_size: 32
+[02/10/2019 15:55:50 INFO 140213022148416] mini_batch_size: 32
+2019-02-10 15:55:50 image_shape: 3,224,224
+[02/10/2019 15:55:50 INFO 140213022148416] image_shape: 3,224,224
+2019-02-10 15:55:50 num_classes: 1
+[02/10/2019 15:55:50 INFO 140213022148416] num_classes: 1
+2019-02-10 15:55:50 num_training_samples: 653
+[02/10/2019 15:55:50 INFO 140213022148416] num_training_samples: 653
+2019-02-10 15:55:50 augmentation_type: None
+[02/10/2019 15:55:50 INFO 140213022148416] augmentation_type: None
+2019-02-10 15:55:50 kv_store: device
+[02/10/2019 15:55:50 INFO 140213022148416] kv_store: device
+2019-02-10 15:55:50 checkpoint_frequency: 1
+[02/10/2019 15:55:50 INFO 140213022148416] checkpoint_frequency: 1
+2019-02-10 15:55:50 multi_label: 1
+2019-02-10 15:55:50 --------------------
+[02/10/2019 15:55:50 INFO 140213022148416] multi_label: 1
+[02/10/2019 15:55:50 INFO 140213022148416] --------------------
+[15:55:50] /opt/brazil-pkg-cache/packages/MXNetECL/MXNetECL-master.657.0/AL2012/generic-flavor/src/src/nnvm/legacy_json_util.cc:209: Loading symbol saved by previous version v0.8.0. Attempting to upgrade...
+[15:55:50] /opt/brazil-pkg-cache/packages/MXNetECL/MXNetECL-master.657.0/AL2012/generic-flavor/src/src/nnvm/legacy_json_util.cc:217: Symbol successfully upgraded!
+2019-02-10 15:55:52 Setting number of threads: 3
+[02/10/2019 15:55:52 INFO 140213022148416] Setting number of threads: 3
+[15:55:58] /opt/brazil-pkg-cache/packages/MXNetECL/MXNetECL-master.657.0/AL2012/generic-flavor/src/src/operator/nn/./cudnn/./cudnn_algoreg-inl.h:97: Running performance tests to find the best convolution algorithm, this can take a while... (setting env variable MXNET_CUDNN_AUTOTUNE_DEFAULT to 0 to disable)
+Error in CustomOp.backward: Traceback (most recent call last):
+File "/opt/amazon/lib/python2.7/site-packages/mxnet/operator.py", line 1026, in backward_entry
+aux=tensors[4])
+File "/opt/amazon/lib/python2.7/site-packages/image_classification/crossentropy.py", line 59, in backward
+self.assign(in_grad[0], req[0], grad*scale_factor)
+File "/opt/amazon/lib/python2.7/site-packages/mxnet/operator.py", line 468, in assign
+dst[:] = src
+File "/opt/amazon/lib/python2.7/site-packages/mxnet/ndarray/ndarray.py", line 444, in __setitem__
+self._set_nd_basic_indexing(key, value)
+File "/opt/amazon/lib/python2.7/site-packages/mxnet/ndarray/ndarray.py", line 702, in _set_nd_basic_indexing
+value = value.broadcast_to(shape)
+File "/opt/amazon/lib/python2.7/site-packages/mxnet/ndarray/ndarray.py", line 1735, in broadcast_to
+raise ValueError(err_str)
+ValueError: operands could not be broadcast together with remapped shapes[original->remapped]: (32L, 32L) and requested shape (32L, 1L)
+Algorithm Error: Internal Server Error
+[15:56:08] /opt/brazil-pkg-cache/packages/MXNetECL/MXNetECL-master.657.0/AL2012/generic-flavor/src/src/operator/custom/custom.cc:418: Check failed: reinterpret_cast<CustomOpFBFunc>(params.info->callbacks[kCustomOpBackward])( ptrs.size(), const_cast<void**>(ptrs.data()), const_cast<int*>(tags.data()), reinterpret_cast<const int*>(req.data()), static_cast<int>(ctx.is_train), params.info->contexts[kCustomOpBackward]) 
+Stack trace returned 7 entries:
+[bt] (0) /opt/amazon/lib/libaialgsdataiter.so(dmlc::StackTrace()+0x3d) [0x7f85e19f179d]
+[bt] (1) /opt/amazon/lib/libaialgsdataiter.so(dmlc::LogMessageFatal::~LogMessageFatal()+0x1a) [0x7f85e19f1a3a]
+[bt] (2) /opt/amazon/lib/libmxnet.so(+0x26da8fd) [0x7f85d0edb8fd]
+[bt] (3) /opt/amazon/lib/libmxnet.so(std::thread::_Impl<std::_Bind_simple<mxnet::op::custom::CustomOperator::CustomOperator()::{lambda()#1} ()> >::_M_run()+0x12f) [0x7f85d0ede0ef]
+[bt] (4) /opt/amazon/lib/libstdc++.so.6(+0xce440) [0x7f85cc9ea440]
+[bt] (5) /lib64/libpthread.so.0(+0x7dc5) [0x7f85e31e1dc5]
+[bt] (6) /lib64/libc.so.6(clone+0x6d) [0x7f85e25de6ed]
+
+Algorithm Error: Internal Server Error
+Resource deadlock avoided
+
