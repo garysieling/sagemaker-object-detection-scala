@@ -1,12 +1,12 @@
 {
   "paragraphs": [
     {
-      "text": "def sendEvent(event: String, message: String): Unit \u003d {\n  // See https://alvinalexander.com/scala/scala-rest-client-apache-httpclient-restful-clients\n  val IFTTT_TOKEN \u003d sys.env(\"IFTTT_TOKEN\")\n\n  import org.apache.http.client.methods.HttpPost\n  import org.apache.http.impl.client.DefaultHttpClient\n\n  val url \u003d s\"https://maker.ifttt.com/trigger/$event/with/key/$IFTTT_TOKEN\"\n  println(s\"Sending message to $url\")\n  \n  val post \u003d new HttpPost(url)\n  \n  val client \u003d new DefaultHttpClient\n  val response \u003d client.execute(post)\n  response.getAllHeaders.foreach(arg \u003d\u003e println(arg))\n  \n  val entity \u003d response.getEntity()\n  var content \u003d \"\"\n  if (entity !\u003d null) {\n    val inputStream \u003d entity.getContent()\n    content \u003d scala.io.Source.fromInputStream(inputStream).getLines.mkString\n    inputStream.close\n  }\n  \n  println(\"Received: \" + content)\n  \n  client.getConnectionManager().shutdown()\n  \n}",
+      "text": "def sendEvent(event: String, message: String): Unit = {\n  // See https://alvinalexander.com/scala/scala-rest-client-apache-httpclient-restful-clients\n  val IFTTT_TOKEN = sys.env(\"IFTTT_TOKEN\")\n\n  import org.apache.http.client.methods.HttpPost\n  import org.apache.http.impl.client.DefaultHttpClient\n\n  val url = s\"https://maker.ifttt.com/trigger/$event/with/key/$IFTTT_TOKEN\"\n  println(s\"Sending message to $url\")\n  \n  val post = new HttpPost(url)\n  \n  val client = new DefaultHttpClient\n  val response = client.execute(post)\n  response.getAllHeaders.foreach(arg => println(arg))\n  \n  val entity = response.getEntity()\n  var content = \"\"\n  if (entity != null) {\n    val inputStream = entity.getContent()\n    content = scala.io.Source.fromInputStream(inputStream).getLines.mkString\n    inputStream.close\n  }\n  \n  println(\"Received: \" + content)\n  \n  client.getConnectionManager().shutdown()\n  \n}",
       "user": "anonymous",
       "dateUpdated": "2019-02-13 19:39:44.947",
       "config": {
-        "colWidth": 12.0,
-        "fontSize": 9.0,
+        "colWidth": 12,
+        "fontSize": 9,
         "enabled": true,
         "results": {},
         "editorSetting": {
@@ -21,15 +21,7 @@
         "params": {},
         "forms": {}
       },
-      "results": {
-        "code": "SUCCESS",
-        "msg": [
-          {
-            "type": "TEXT",
-            "data": "warning: there was one deprecation warning; re-run with -deprecation for details\nsendEvent: (event: String, message: String)Unit\n"
-          }
-        ]
-      },
+      "results": {},
       "apps": [],
       "jobName": "paragraph_1550079986881_-248827287",
       "id": "20190213-174626_1869207558",
@@ -44,8 +36,8 @@
       "user": "anonymous",
       "dateUpdated": "2019-02-13 19:39:51.617",
       "config": {
-        "colWidth": 12.0,
-        "fontSize": 9.0,
+        "colWidth": 12,
+        "fontSize": 9,
         "enabled": true,
         "results": {},
         "editorSetting": {
@@ -60,15 +52,7 @@
         "params": {},
         "forms": {}
       },
-      "results": {
-        "code": "SUCCESS",
-        "msg": [
-          {
-            "type": "TEXT",
-            "data": "Sending message to https://maker.ifttt.com/trigger/sagemaker_detection/with/key/gpT9vGiqM13-6HXud5gPxhfLY9CTe4Y66jMyDTcbwHb\nDate: Wed, 13 Feb 2019 19:39:52 GMT\nContent-Type: text/html; charset\u003dutf-8\nContent-Length: 59\nConnection: keep-alive\nX-Top-SecreTTT: VG9vIGVhc3k/IElmIHlvdSBjYW4gcmVhZCB0aGlzLCBFbWFpbCB1cyBhdCBqb2JzK3NlY3JldEBpZnR0dC5jb20uIFdlIHdhbnQgTWFrZXJzLg\u003d\u003d\nServer: web_server\nReceived: Congratulations! You\u0027ve fired the sagemaker_detection event\n"
-          }
-        ]
-      },
+      "results": {},
       "apps": [],
       "jobName": "paragraph_1550084470706_898520800",
       "id": "20190213-190110_525118822",
@@ -80,7 +64,9 @@
     },
     {
       "user": "anonymous",
-      "config": {},
+      "config": {
+        "results": {}
+      },
       "settings": {
         "params": {},
         "forms": {}
@@ -90,7 +76,8 @@
       "id": "20190213-190144_236929423",
       "dateCreated": "2019-02-13 19:01:44.473",
       "status": "READY",
-      "progressUpdateIntervalMs": 500
+      "progressUpdateIntervalMs": 500,
+      "results": {}
     }
   ],
   "name": "IOT",

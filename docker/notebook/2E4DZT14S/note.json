@@ -2,7 +2,9 @@
   "paragraphs": [
     {
       "user": "anonymous",
-      "config": {},
+      "config": {
+        "results": {}
+      },
       "settings": {
         "params": {},
         "forms": {}
@@ -12,7 +14,8 @@
       "id": "20190212-211955_467801363",
       "dateCreated": "2019-02-12 21:19:55.102",
       "status": "READY",
-      "progressUpdateIntervalMs": 500
+      "progressUpdateIntervalMs": 500,
+      "results": {}
     }
   ],
   "name": "Dataset Quality",
