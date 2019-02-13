@@ -652,8 +652,7 @@
           "type": "number"
         }
       },
-      "status": "ERROR",
-      "errorReason": "Cannot fetch dependencies for com.sksamuel.scrimage:scrimage-core:3.0.0-alpha4",
+      "status": "DOWNLOADING_DEPENDENCIES",
       "interpreterGroup": [
         {
           "name": "spark",
@@ -1326,7 +1325,7 @@
           "type": "textarea"
         }
       },
-      "status": "READY",
+      "status": "DOWNLOADING_DEPENDENCIES",
       "interpreterGroup": [
         {
           "name": "spark",
@@ -1707,6 +1706,29 @@
       "sap"
     ],
     "2E661WDWR": [
+      "spark",
+      "md",
+      "angular",
+      "sh",
+      "livy",
+      "alluxio",
+      "file",
+      "flink",
+      "python",
+      "ignite",
+      "lens",
+      "cassandra",
+      "kylin",
+      "elasticsearch",
+      "jdbc",
+      "hbase",
+      "bigquery",
+      "groovy",
+      "neo4j",
+      "pig",
+      "sap"
+    ],
+    "2E2PRYK75": [
       "spark",
       "md",
       "angular",
