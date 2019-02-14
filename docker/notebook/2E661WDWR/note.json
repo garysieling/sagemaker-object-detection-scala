@@ -1,9 +1,9 @@
 {
   "paragraphs": [
     {
-      "text": "import java.io.File\n\n// https://stackoverflow.com/questions/2637643/how-do-i-list-all-files-in-a-subdirectory-in-scala\ndef getFileTree(f: File): Stream[File] =\n  f #:: (if (f.isDirectory) f.listFiles().toStream.flatMap(getFileTree)\n  else Stream.empty)\n\ndef resizeImage(src: String, dst: String, width: Int, height: Int): Unit = {\n  import com.sksamuel.scrimage._\n  import com.sksamuel.scrimage.nio.JpegWriter\n\n  {\n    import sys.process._\n\n    val dstFullPath = (dst.substring(0, dst.lastIndexOf(\"/\")))\n    (\"mkdir -p \" + dstFullPath).!!\n  }\n\n  Image.fromFile(\n    new File(src)\n  ).scaleTo(\n    width, height\n  ).output(\n    new File(dst)\n  )(JpegWriter()) // specified Jpeg\n}\n\ndef resizeImages(src: String, dst: String, width: Int, height: Int): Unit = {\n    val images = getFileTree(\n      new File(src)\n    ).filter(\n      _.getAbsolutePath != src\n    ).filter(\n      !_.isDirectory\n    ).map(\n      (file) => (file.getAbsolutePath, dst + file.getAbsolutePath.substring(src.length))\n    )\n\n    {\n      import sys.process._\n      (\"rm -rf \" + dst).!!\n    }\n\n    images.foreach(\n      (paths) => resizeImage(paths._1, paths._2, width, height)\n    )\n  }",
+      "text": "import java.io.File\n\n// https://stackoverflow.com/questions/2637643/how-do-i-list-all-files-in-a-subdirectory-in-scala\ndef getFileTree(f: File): Stream[File] =\n  f #:: (if (f.isDirectory) f.listFiles().toStream.flatMap(getFileTree)\n  else Stream.empty)\n\ndef resizeImage(src: String, width: Int, height: Int): File = {\n  import com.sksamuel.scrimage._\n  import com.sksamuel.scrimage.nio.JpegWriter\n\n  val tempFile = File.createTempFile(\"/tmp/\", \".jpg\");\n  tempFile.deleteOnExit();\n\n  Image.fromFile(\n    new File(src)\n  ).scaleTo(\n    width, height\n  ).output(\n    tempFile\n  )(JpegWriter()) // specified Jpeg\n  \n  tempFile\n}\n\ndef resizeImages(src: String, dst: String, width: Int, height: Int): List[File] = {\n    val images = getFileTree(\n      new File(src)\n    ).filter(\n      _.getAbsolutePath != src\n    ).filter(\n      !_.isDirectory\n    ).map(\n      (file) => file.getAbsolutePath\n    ).toList\n\n    {\n      import sys.process._\n      (\"rm -rf \" + dst).!!\n    }\n\n    images.map(\n      (path) => resizeImage(path, width, height)\n    )\n  }",
       "user": "anonymous",
-      "dateUpdated": "2019-02-14 18:22:11.281",
+      "dateUpdated": "2019-02-14 21:30:50.898",
       "config": {
         "colWidth": 12,
         "fontSize": 9,
@@ -15,7 +15,8 @@
           "completionKey": "TAB",
           "completionSupport": true
         },
-        "editorMode": "ace/mode/scala"
+        "editorMode": "ace/mode/scala",
+        "lineNumbers": false
       },
       "settings": {
         "params": {},
@@ -26,8 +27,8 @@
       "jobName": "paragraph_1550166762244_21421551",
       "id": "20190214-175242_441394643",
       "dateCreated": "2019-02-14 17:52:42.244",
-      "dateStarted": "2019-02-14 18:22:11.327",
-      "dateFinished": "2019-02-14 18:23:04.675",
+      "dateStarted": "2019-02-14 21:30:50.908",
+      "dateFinished": "2019-02-14 21:30:51.255",
       "status": "FINISHED",
       "progressUpdateIntervalMs": 500
     },
