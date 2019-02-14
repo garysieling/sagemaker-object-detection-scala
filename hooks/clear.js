@@ -31,6 +31,7 @@ files.filter(
       (paragraph) => {
         paragraph.results = {};
         paragraph.config.results = {};
+        paragraph.settings.forms = {};
       }
     )
 
