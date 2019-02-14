@@ -652,7 +652,7 @@
           "type": "number"
         }
       },
-      "status": "DOWNLOADING_DEPENDENCIES",
+      "status": "READY",
       "interpreterGroup": [
         {
           "name": "spark",
@@ -715,32 +715,7 @@
           "defaultInterpreter": false
         }
       ],
-      "dependencies": [
-        {
-          "groupArtifactVersion": "com.amazonaws:aws-java-sdk-s3:1.11.491",
-          "local": false
-        },
-        {
-          "groupArtifactVersion": "com.amazonaws:aws-java-sdk-sagemaker:1.11.491",
-          "local": false,
-          "exclusions": []
-        },
-        {
-          "groupArtifactVersion": "com.amazonaws:aws-java-sdk-sagemakerruntime:1.11.491",
-          "local": false,
-          "exclusions": []
-        },
-        {
-          "groupArtifactVersion": "com.amazonaws:aws-java-sdk-pricing:1.11.491",
-          "local": false,
-          "exclusions": []
-        },
-        {
-          "groupArtifactVersion": "com.sksamuel.scrimage:scrimage-core:3.0.0-alpha4",
-          "local": false,
-          "exclusions": []
-        }
-      ],
+      "dependencies": [],
       "option": {
         "remote": true,
         "port": -1,
@@ -1416,6 +1391,10 @@
           "groupArtifactVersion": "com.sksamuel.scrimage:scrimage-core_2.11:3.0.0-alpha4",
           "local": false,
           "exclusions": []
+        },
+        {
+          "groupArtifactVersion": "org.bytedeco:javacv-platform:1.4.4",
+          "local": false
         }
       ],
       "option": {
