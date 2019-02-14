@@ -1,9 +1,40 @@
 {
   "paragraphs": [
     {
-      "text": "import java.io.File\n\ndef listBuckets(): List[String] = {\n  import scala.collection.JavaConverters._\n  import com.amazonaws.services.s3.AmazonS3Client\n  \n  val s3 = AmazonS3Client.builder().withRegion(\"us-east-1\").build()\n  val buckets = s3.listBuckets.asScala\n  \n  buckets.map(_.getName).toList\n}\n\ndef showImage(file: File) = {\n  import java.io._\n  import java.util._\n  val fis = new FileInputStream(file)\n \n  val data = Array.fill[Byte](file.length.toInt)(0)\n  fis.read(data)\n  fis.close\n \n  val encoded_string = Base64.getEncoder.encodeToString(data)\n  val filename = file.getName\n  print(s\"<img title='$filename' src='data:image/jpeg;base64,$encoded_string' style='float:left;padding:5px;height:224px;width:224px' />\")\n}\n\ndef showFilesFromS3(bucketName: String, count: Int) {\n  import com.amazonaws.services.s3.model._\n  import java.io._\n  import java.util._\n  import scala.collection.JavaConverters._\n  import com.amazonaws.services.s3.transfer._\n  import com.amazonaws.services.s3.AmazonS3Client\n\n  val s3 = AmazonS3Client.builder().withRegion(\"us-east-1\").build()\n  val buckets = s3.listBuckets.asScala\n\n  buckets.filter(\n    _.getName == bucketName    \n  ).map(\n    (b) => { \n      val objects = s3.listObjects(b.getName)\n      objects.getObjectSummaries.asScala.map(\n        (f) => f.getKey\n      ).filter(\n        (f) => f.startsWith(\"validation\") && f.endsWith(\".jpg\")     \n      ).take(count).map(\n        (f) => {\n          val out = new File(\"/tmp/\" + f)\n          TransferManagerBuilder\n            .standard\n            .withS3Client(s3)\n            .build()\n            .download(b.getName, f, out)\n                  \n          out\n      }\n    ).map(\n      showImage\n    )\n  })\n}",
+      "text": "import java.io.File\n\n// https://stackoverflow.com/questions/2637643/how-do-i-list-all-files-in-a-subdirectory-in-scala\ndef getFileTree(f: File): Stream[File] =\n  f #:: (if (f.isDirectory) f.listFiles().toStream.flatMap(getFileTree)\n  else Stream.empty)\n\ndef resizeImage(src: String, dst: String, width: Int, height: Int): Unit = {\n  import com.sksamuel.scrimage._\n  import com.sksamuel.scrimage.nio.JpegWriter\n\n  {\n    import sys.process._\n\n    val dstFullPath = (dst.substring(0, dst.lastIndexOf(\"/\")))\n    (\"mkdir -p \" + dstFullPath).!!\n  }\n\n  Image.fromFile(\n    new File(src)\n  ).scaleTo(\n    width, height\n  ).output(\n    new File(dst)\n  )(JpegWriter()) // specified Jpeg\n}\n\ndef resizeImages(src: String, dst: String, width: Int, height: Int): Unit = {\n    val images = getFileTree(\n      new File(src)\n    ).filter(\n      _.getAbsolutePath != src\n    ).filter(\n      !_.isDirectory\n    ).map(\n      (file) => (file.getAbsolutePath, dst + file.getAbsolutePath.substring(src.length))\n    )\n\n    {\n      import sys.process._\n      (\"rm -rf \" + dst).!!\n    }\n\n    images.foreach(\n      (paths) => resizeImage(paths._1, paths._2, width, height)\n    )\n  }",
       "user": "anonymous",
-      "dateUpdated": "2019-02-14 16:10:35.152",
+      "dateUpdated": "2019-02-14 17:59:35.905",
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {},
+      "apps": [],
+      "jobName": "paragraph_1550166762244_21421551",
+      "id": "20190214-175242_441394643",
+      "dateCreated": "2019-02-14 17:52:42.244",
+      "dateStarted": "2019-02-14 17:59:35.947",
+      "dateFinished": "2019-02-14 17:59:46.139",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "import java.io.File\n\ndef listBuckets(): List[String] = {\n  import scala.collection.JavaConverters._\n  import com.amazonaws.services.s3.AmazonS3Client\n  \n  val s3 = AmazonS3Client.builder().withRegion(\"us-east-1\").build()\n  val buckets = s3.listBuckets.asScala\n  \n  buckets.map(_.getName).toList\n}\n\ndef showImage(file: File) = {\n  import java.io._\n  import java.util._\n  val fis = new FileInputStream(file)\n \n  val data = Array.fill[Byte](file.length.toInt)(0)\n  fis.read(data)\n  fis.close\n \n  val encoded_string = Base64.getEncoder.encodeToString(data)\n  val filename = file.getName\n  print(s\"<img title='$filename' src='data:image/jpeg;base64,$encoded_string' style='float:left;padding:5px;height:224px;width:224px' />\")\n}\n\ndef showFilesFromS3(bucketName: String, count: Int) {\n  import com.amazonaws.services.s3.model._\n  import java.io._\n  import java.util._\n  import scala.collection.JavaConverters._\n  import com.amazonaws.services.s3.transfer._\n  import com.amazonaws.services.s3.AmazonS3Client\n\n  val s3 = AmazonS3Client.builder().withRegion(\"us-east-1\").build()\n  val buckets = s3.listBuckets.asScala\n\n  buckets.filter(\n    _.getName == bucketName    \n  ).map(\n    (b) => { \n      val objects = s3.listObjects(b.getName)\n      objects.getObjectSummaries.asScala.map(\n        (f) => f.getKey\n      ).filter(\n        (f) => f.startsWith(\"validation\") && f.endsWith(\".jpg\")     \n      ).take(count).par.map(\n        (f) => {\n          val out = new File(\"/tmp/\" + b.getName + \"/\" + f)\n          if (!out.exists) {\n            val dl = TransferManagerBuilder\n              .standard\n              .withS3Client(s3)\n              .build()\n              .download(b.getName, f, out)\n            (Some(dl), out)\n          } else {\n            (None, out)\n          }\n      }\n    ).map(\n      (r) => {\n        r._1 match {\n          case Some(dl) => dl.waitForCompletion\n          case _ => {}\n        }\n\n        resizeImage(r._2.getAbsolutePath, r._2.getAbsolutePath, 224, 224)\n        \n        r._2\n      }\n    ).map(\n      showImage\n    )\n  })\n}",
+      "user": "anonymous",
+      "dateUpdated": "2019-02-14 17:59:52.112",
       "config": {
         "colWidth": 12,
         "fontSize": 9,
@@ -26,15 +57,15 @@
       "jobName": "paragraph_1550006400682_-724854133",
       "id": "20190212-212000_1513042490",
       "dateCreated": "2019-02-12 21:20:00.682",
-      "dateStarted": "2019-02-14 16:10:35.279",
-      "dateFinished": "2019-02-14 16:10:35.464",
+      "dateStarted": "2019-02-14 17:59:52.129",
+      "dateFinished": "2019-02-14 17:59:52.982",
       "status": "FINISHED",
       "progressUpdateIntervalMs": 500
     },
     {
-      "text": "println(\"%html\")\nval selection = z.select(\"\", listBuckets.map((b) => (b, b)).sorted)\nval count = z.select(\"6\", List(\"6\", \"12\", \"24\", \"48\", \"96\").map((c) => (c, c)))\n\nif (selection != \"\") {\n  println(s\"<h5>$selection</h5>\")\n  showFilesFromS3(selection + \"\", (count + \"\").toInt)\n}",
+      "text": "println(\"%html\")\nval selection = z.select(\"\", listBuckets.map((b) => (b, b)).sorted)\nval count = z.select(\"4\", List(\"4\", \"8\", \"16\").map((c) => (c, c)))\n\nif (selection != \"\") {\n  println(s\"<h5>$selection</h5>\")\n  showFilesFromS3(selection + \"\", (count + \"\").toInt)\n}",
       "user": "anonymous",
-      "dateUpdated": "2019-02-14 16:12:36.279",
+      "dateUpdated": "2019-02-14 18:00:00.055",
       "config": {
         "colWidth": 6,
         "fontSize": 9,
@@ -51,50 +82,111 @@
       },
       "settings": {
         "params": {
-          "6": "24",
+          "4": "16",
+          "6": "2",
           "": "objectdetection-alerts-small-both-2019-02-11-21-38"
         },
-        "forms": {}
+        "forms": {
+          "4": {
+            "type": "Select",
+            "options": [
+              {
+                "value": "4",
+                "displayName": "4"
+              },
+              {
+                "value": "8",
+                "displayName": "8"
+              },
+              {
+                "value": "16",
+                "displayName": "16"
+              }
+            ],
+            "name": "4",
+            "displayName": "4",
+            "defaultValue": "",
+            "hidden": false
+          },
+          "": {
+            "type": "Select",
+            "options": [
+              {
+                "value": "objectdetection-alerts-small-both-2019-02-11-21-38",
+                "displayName": "objectdetection-alerts-small-both-2019-02-11-21-38"
+              },
+              {
+                "value": "objectdetection-household-household2-2019-02-09-09-44",
+                "displayName": "objectdetection-household-household2-2019-02-09-09-44"
+              },
+              {
+                "value": "objectdetection-household-household2-2019-02-09-09-49",
+                "displayName": "objectdetection-household-household2-2019-02-09-09-49"
+              },
+              {
+                "value": "objectdetection-household-household2-2019-02-09-12-59",
+                "displayName": "objectdetection-household-household2-2019-02-09-12-59"
+              },
+              {
+                "value": "objectdetection-household-household2-2019-02-09-13-53",
+                "displayName": "objectdetection-household-household2-2019-02-09-13-53"
+              },
+              {
+                "value": "objectdetection-household-household2-2019-02-09-22-27",
+                "displayName": "objectdetection-household-household2-2019-02-09-22-27"
+              },
+              {
+                "value": "objectdetection-kiddetector-small-2019-02-09-22-28",
+                "displayName": "objectdetection-kiddetector-small-2019-02-09-22-28"
+              },
+              {
+                "value": "objectdetection-kiddetector-small-2019-02-10-09-04",
+                "displayName": "objectdetection-kiddetector-small-2019-02-10-09-04"
+              },
+              {
+                "value": "objectdetection-kiddetector-small-2019-02-10-09-55",
+                "displayName": "objectdetection-kiddetector-small-2019-02-10-09-55"
+              },
+              {
+                "value": "objectdetection-kiddetector-small-2019-02-10-10-38",
+                "displayName": "objectdetection-kiddetector-small-2019-02-10-10-38"
+              },
+              {
+                "value": "objectdetection-kiddetector-small-2019-02-10-10-49",
+                "displayName": "objectdetection-kiddetector-small-2019-02-10-10-49"
+              },
+              {
+                "value": "objectdetection-kiddetector-small-2019-02-10-11-11",
+                "displayName": "objectdetection-kiddetector-small-2019-02-10-11-11"
+              },
+              {
+                "value": "objectdetection-kiddetector-small-both-2019-02-10-16-15",
+                "displayName": "objectdetection-kiddetector-small-both-2019-02-10-16-15"
+              },
+              {
+                "value": "objectdetection-kiddetector-small-both-2019-02-11-21-28",
+                "displayName": "objectdetection-kiddetector-small-both-2019-02-11-21-28"
+              },
+              {
+                "value": "sieling.household",
+                "displayName": "sieling.household"
+              }
+            ],
+            "name": "",
+            "displayName": "",
+            "defaultValue": "",
+            "hidden": false
+          }
+        }
       },
       "results": {},
       "apps": [],
       "jobName": "paragraph_1550090515820_12988636",
       "id": "20190213-204155_639914255",
       "dateCreated": "2019-02-13 20:41:55.823",
-      "dateStarted": "2019-02-14 16:12:36.282",
-      "dateFinished": "2019-02-14 16:12:37.699",
-      "status": "ERROR",
-      "progressUpdateIntervalMs": 500
-    },
-    {
-      "text": "%md Pick a bucket: ${bucket=objectdetection-alerts-small-both-2019-02-11-21-38|objectdetection-household-household2-2019-02-09-09-44|objectdetection-household-household2-2019-02-09-09-49|objectdetection-household-household2-2019-02-09-12-59|objectdetection-household-household2-2019-02-09-13-53|objectdetection-household-household2-2019-02-09-22-27|objectdetection-kiddetector-small-2019-02-09-22-28|objectdetection-kiddetector-small-2019-02-10-09-04|objectdetection-kiddetector-small-2019-02-10-09-55|objectdetection-kiddetector-small-2019-02-10-10-38|objectdetection-kiddetector-small-2019-02-10-10-49|objectdetection-kiddetector-small-2019-02-10-11-11|objectdetection-kiddetector-small-both-2019-02-10-16-15|objectdetection-kiddetector-small-both-2019-02-11-21-28|sieling.household}",
-      "user": "anonymous",
-      "dateUpdated": "2019-02-13 20:47:35.414",
-      "config": {
-        "colWidth": 12,
-        "fontSize": 9,
-        "enabled": true,
-        "results": {},
-        "editorSetting": {
-          "language": "markdown",
-          "editOnDblClick": true,
-          "completionKey": "TAB",
-          "completionSupport": false
-        },
-        "editorMode": "ace/mode/markdown",
-        "editorHide": true,
-        "tableHide": false
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "results": {},
-      "apps": [],
-      "jobName": "paragraph_1550090802489_-600827844",
-      "id": "20190213-204642_1308285141",
-      "dateCreated": "2019-02-13 20:46:42.489",
-      "status": "ABORT",
+      "dateStarted": "2019-02-14 18:00:00.074",
+      "dateFinished": "2019-02-14 18:00:05.413",
+      "status": "FINISHED",
       "progressUpdateIntervalMs": 500
     },
     {
@@ -106,13 +198,13 @@
         "params": {},
         "forms": {}
       },
-      "results": {},
       "apps": [],
-      "jobName": "paragraph_1550089681233_-2061117436",
-      "id": "20190213-202801_270180391",
-      "dateCreated": "2019-02-13 20:28:01.233",
+      "jobName": "paragraph_1550161306913_-850218732",
+      "id": "20190214-162146_918391079",
+      "dateCreated": "2019-02-14 16:21:46.913",
       "status": "READY",
-      "progressUpdateIntervalMs": 500
+      "progressUpdateIntervalMs": 500,
+      "results": {}
     }
   ],
   "name": "Model Quality",
@@ -120,7 +212,6 @@
   "noteParams": {},
   "noteForms": {},
   "angularObjects": {
-    "md:shared_process": [],
     "spark:shared_process": []
   },
   "config": {

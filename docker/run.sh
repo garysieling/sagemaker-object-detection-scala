@@ -11,6 +11,7 @@ docker run -p 7077:7077 \
   -v $PWD/notebook:/notebook \
   -v $DATA_DIR:/data \
   -v $PWD/conf:/zeppelin/conf/ \
+  -v $PWD/tmp:/tmp \
   -it \
   -e ZEPPELIN_NOTEBOOK_DIR='/notebook' \
   -e ZEPPELIN_LOG_DIR='/logs' \
