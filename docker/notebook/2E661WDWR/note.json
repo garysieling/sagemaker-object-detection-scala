@@ -1,9 +1,9 @@
 {
   "paragraphs": [
     {
-      "text": "import java.io.File\n\ndef listBuckets(): List[String] = {\n  import scala.collection.JavaConverters._\n  import com.amazonaws.services.s3.AmazonS3Client\n  \n  val s3 = AmazonS3Client.builder().withRegion(\"us-east-1\").build()\n  val buckets = s3.listBuckets.asScala\n  \n  buckets.map(_.getName).toList\n}\n\ndef showImage(file: File) = {\n  import java.io._\n  import java.util._\n  val fis = new FileInputStream(file)\n \n  val data = Array.fill[Byte](file.length.toInt)(0)\n  fis.read(data)\n  fis.close\n \n  val encoded_string = Base64.getEncoder.encodeToString(data)\n  print(\"<img src='data:image/jpeg;base64,\" + encoded_string + \"' style='float:left;padding:5px;max-height:300px' />\")\n}\n\ndef showFilesFromS3(bucketName: String) {\n  import com.amazonaws.services.s3.model._\n  import java.io._\n  import java.util._\n  import scala.collection.JavaConverters._\n  import com.amazonaws.services.s3.transfer._\n  import com.amazonaws.services.s3.AmazonS3Client\n\n  val s3 = AmazonS3Client.builder().withRegion(\"us-east-1\").build()\n  val buckets = s3.listBuckets.asScala\n\n  buckets.filter(\n    _.getName == bucketName    \n  ).map(\n    (b) => { \n      val objects = s3.listObjects(b.getName)\n      objects.getObjectSummaries.asScala.map(\n        (f) => f.getKey\n      ).filter(\n        (f) => f.startsWith(\"validation\") && f.endsWith(\".jpg\")     \n      ).take(5).map(\n        (f) => {\n          val out = new File(\"/tmp/\" + f)\n          TransferManagerBuilder\n            .standard\n            .withS3Client(s3)\n            .build()\n            .download(b.getName, f, out)\n                  \n          out\n      }\n    ).map(\n      showImage\n    )\n  })\n}",
+      "text": "import java.io.File\n\ndef listBuckets(): List[String] = {\n  import scala.collection.JavaConverters._\n  import com.amazonaws.services.s3.AmazonS3Client\n  \n  val s3 = AmazonS3Client.builder().withRegion(\"us-east-1\").build()\n  val buckets = s3.listBuckets.asScala\n  \n  buckets.map(_.getName).toList\n}\n\ndef showImage(file: File) = {\n  import java.io._\n  import java.util._\n  val fis = new FileInputStream(file)\n \n  val data = Array.fill[Byte](file.length.toInt)(0)\n  fis.read(data)\n  fis.close\n \n  val encoded_string = Base64.getEncoder.encodeToString(data)\n  val filename = file.getName\n  print(s\"<img title='$filename' src='data:image/jpeg;base64,$encoded_string' style='float:left;padding:5px;height:224px;width:224px' />\")\n}\n\ndef showFilesFromS3(bucketName: String, count: Int) {\n  import com.amazonaws.services.s3.model._\n  import java.io._\n  import java.util._\n  import scala.collection.JavaConverters._\n  import com.amazonaws.services.s3.transfer._\n  import com.amazonaws.services.s3.AmazonS3Client\n\n  val s3 = AmazonS3Client.builder().withRegion(\"us-east-1\").build()\n  val buckets = s3.listBuckets.asScala\n\n  buckets.filter(\n    _.getName == bucketName    \n  ).map(\n    (b) => { \n      val objects = s3.listObjects(b.getName)\n      objects.getObjectSummaries.asScala.map(\n        (f) => f.getKey\n      ).filter(\n        (f) => f.startsWith(\"validation\") && f.endsWith(\".jpg\")     \n      ).take(count).map(\n        (f) => {\n          val out = new File(\"/tmp/\" + f)\n          TransferManagerBuilder\n            .standard\n            .withS3Client(s3)\n            .build()\n            .download(b.getName, f, out)\n                  \n          out\n      }\n    ).map(\n      showImage\n    )\n  })\n}",
       "user": "anonymous",
-      "dateUpdated": "2019-02-13 20:44:13.796",
+      "dateUpdated": "2019-02-14 16:10:35.152",
       "config": {
         "colWidth": 12,
         "fontSize": 9,
@@ -26,17 +26,17 @@
       "jobName": "paragraph_1550006400682_-724854133",
       "id": "20190212-212000_1513042490",
       "dateCreated": "2019-02-12 21:20:00.682",
-      "dateStarted": "2019-02-13 20:44:13.840",
-      "dateFinished": "2019-02-13 20:44:14.755",
+      "dateStarted": "2019-02-14 16:10:35.279",
+      "dateFinished": "2019-02-14 16:10:35.464",
       "status": "FINISHED",
       "progressUpdateIntervalMs": 500
     },
     {
-      "text": "print(\"%md Pick a bucket: \")\nprint(\"${bucket=\" + listBuckets().sorted.mkString(\"|\") + \"}\")",
+      "text": "println(\"%html\")\nval selection = z.select(\"\", listBuckets.map((b) => (b, b)).sorted)\nval count = z.select(\"6\", List(\"6\", \"12\", \"24\", \"48\", \"96\").map((c) => (c, c)))\n\nif (selection != \"\") {\n  println(s\"<h5>$selection</h5>\")\n  showFilesFromS3(selection + \"\", (count + \"\").toInt)\n}",
       "user": "anonymous",
-      "dateUpdated": "2019-02-13 20:47:58.188",
+      "dateUpdated": "2019-02-14 16:12:36.279",
       "config": {
-        "colWidth": 12,
+        "colWidth": 6,
         "fontSize": 9,
         "enabled": true,
         "results": {},
@@ -46,10 +46,14 @@
           "completionKey": "TAB",
           "completionSupport": true
         },
-        "editorMode": "ace/mode/scala"
+        "editorMode": "ace/mode/scala",
+        "runOnSelectionChange": true
       },
       "settings": {
-        "params": {},
+        "params": {
+          "6": "24",
+          "": "objectdetection-alerts-small-both-2019-02-11-21-38"
+        },
         "forms": {}
       },
       "results": {},
@@ -57,43 +61,10 @@
       "jobName": "paragraph_1550090515820_12988636",
       "id": "20190213-204155_639914255",
       "dateCreated": "2019-02-13 20:41:55.823",
-      "dateStarted": "2019-02-13 20:48:00.302",
-      "dateFinished": "2019-02-13 20:45:55.990",
-      "status": "PENDING",
-      "errorMessage": "",
+      "dateStarted": "2019-02-14 16:12:36.282",
+      "dateFinished": "2019-02-14 16:12:37.699",
+      "status": "ERROR",
       "progressUpdateIntervalMs": 500
-    },
-    {
-      "text": "%md  Pick a bucket: ${bucket=objectdetection-alerts-small-both-2019-02-11-21-38|objectdetection-household-household2-2019-02-09-09-44|objectdetection-household-household2-2019-02-09-09-49|objectdetection-household-household2-2019-02-09-12-59|objectdetection-household-household2-2019-02-09-13-53|objectdetection-household-household2-2019-02-09-22-27|objectdetection-kiddetector-small-2019-02-09-22-28|objectdetection-kiddetector-small-2019-02-10-09-04|objectdetection-kiddetector-small-2019-02-10-09-55|objectdetection-kiddetector-small-2019-02-10-10-38|objectdetection-kiddetector-small-2019-02-10-10-49|objectdetection-kiddetector-small-2019-02-10-11-11|objectdetection-kiddetector-small-both-2019-02-10-16-15|objectdetection-kiddetector-small-both-2019-02-11-21-28|sieling.household}",
-      "user": "anonymous",
-      "dateUpdated": "2019-02-13 20:47:26.533",
-      "config": {
-        "colWidth": 12,
-        "fontSize": 9,
-        "enabled": true,
-        "results": {},
-        "editorSetting": {
-          "language": "markdown",
-          "editOnDblClick": true,
-          "completionKey": "TAB",
-          "completionSupport": false
-        },
-        "editorMode": "ace/mode/markdown",
-        "editorHide": false,
-        "tableHide": true
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "apps": [],
-      "jobName": "paragraph_1550090797853_743026354",
-      "id": "20190213-204637_1548637889",
-      "dateCreated": "2019-02-13 20:46:37.854",
-      "dateStarted": "2019-02-13 20:46:40.668",
-      "status": "PENDING",
-      "progressUpdateIntervalMs": 500,
-      "results": {}
     },
     {
       "text": "%md Pick a bucket: ${bucket=objectdetection-alerts-small-both-2019-02-11-21-38|objectdetection-household-household2-2019-02-09-09-44|objectdetection-household-household2-2019-02-09-09-49|objectdetection-household-household2-2019-02-09-12-59|objectdetection-household-household2-2019-02-09-13-53|objectdetection-household-household2-2019-02-09-22-27|objectdetection-kiddetector-small-2019-02-09-22-28|objectdetection-kiddetector-small-2019-02-10-09-04|objectdetection-kiddetector-small-2019-02-10-09-55|objectdetection-kiddetector-small-2019-02-10-10-38|objectdetection-kiddetector-small-2019-02-10-10-49|objectdetection-kiddetector-small-2019-02-10-11-11|objectdetection-kiddetector-small-both-2019-02-10-16-15|objectdetection-kiddetector-small-both-2019-02-11-21-28|sieling.household}",
@@ -118,43 +89,12 @@
         "params": {},
         "forms": {}
       },
+      "results": {},
       "apps": [],
       "jobName": "paragraph_1550090802489_-600827844",
       "id": "20190213-204642_1308285141",
       "dateCreated": "2019-02-13 20:46:42.489",
-      "status": "PENDING",
-      "progressUpdateIntervalMs": 500,
-      "results": {}
-    },
-    {
-      "text": "println(\"%html \")\n\nshowFilesFromS3()",
-      "user": "anonymous",
-      "dateUpdated": "2019-02-13 20:41:50.716",
-      "config": {
-        "colWidth": 12,
-        "fontSize": 9,
-        "enabled": true,
-        "results": {},
-        "editorSetting": {
-          "language": "scala",
-          "editOnDblClick": false,
-          "completionKey": "TAB",
-          "completionSupport": true
-        },
-        "editorMode": "ace/mode/scala"
-      },
-      "settings": {
-        "params": {},
-        "forms": {}
-      },
-      "results": {},
-      "apps": [],
-      "jobName": "paragraph_1550088826179_-282052099",
-      "id": "20190213-201346_1586985078",
-      "dateCreated": "2019-02-13 20:13:46.179",
-      "dateStarted": "2019-02-13 20:41:52.532",
-      "dateFinished": "2019-02-13 20:41:52.666",
-      "status": "ERROR",
+      "status": "ABORT",
       "progressUpdateIntervalMs": 500
     },
     {
@@ -166,13 +106,13 @@
         "params": {},
         "forms": {}
       },
+      "results": {},
       "apps": [],
       "jobName": "paragraph_1550089681233_-2061117436",
       "id": "20190213-202801_270180391",
       "dateCreated": "2019-02-13 20:28:01.233",
       "status": "READY",
-      "progressUpdateIntervalMs": 500,
-      "results": {}
+      "progressUpdateIntervalMs": 500
     }
   ],
   "name": "Model Quality",
@@ -181,7 +121,6 @@
   "noteForms": {},
   "angularObjects": {
     "md:shared_process": [],
-    "python:shared_process": [],
     "spark:shared_process": []
   },
   "config": {
