@@ -3,7 +3,7 @@
     {
       "text": "import java.io.File\n\n// https://stackoverflow.com/questions/2637643/how-do-i-list-all-files-in-a-subdirectory-in-scala\ndef getFileTree(f: File): Stream[File] =\n  f #:: (if (f.isDirectory) f.listFiles().toStream.flatMap(getFileTree)\n  else Stream.empty)\n\ndef resizeImage(src: String, width: Int, height: Int): File = {\n  import com.sksamuel.scrimage._\n  import com.sksamuel.scrimage.nio.JpegWriter\n\n  val tempFile = File.createTempFile(\"/tmp/\", \".jpg\");\n  tempFile.deleteOnExit();\n\n  Image.fromFile(\n    new File(src)\n  ).scaleTo(\n    width, height\n  ).output(\n    tempFile\n  )(JpegWriter()) // specified Jpeg\n  \n  tempFile\n}\n\ndef resizeImages(src: String, dst: String, width: Int, height: Int): List[File] = {\n    val images = getFileTree(\n      new File(src)\n    ).filter(\n      _.getAbsolutePath != src\n    ).filter(\n      !_.isDirectory\n    ).map(\n      (file) => file.getAbsolutePath\n    ).toList\n\n    {\n      import sys.process._\n      (\"rm -rf \" + dst).!!\n    }\n\n    images.map(\n      (path) => resizeImage(path, width, height)\n    )\n  }",
       "user": "anonymous",
-      "dateUpdated": "2019-02-14 21:30:50.898",
+      "dateUpdated": "2019-02-18 19:31:35.520",
       "config": {
         "colWidth": 12,
         "fontSize": 9,
@@ -27,15 +27,15 @@
       "jobName": "paragraph_1550166762244_21421551",
       "id": "20190214-175242_441394643",
       "dateCreated": "2019-02-14 17:52:42.244",
-      "dateStarted": "2019-02-14 21:30:50.908",
-      "dateFinished": "2019-02-14 21:30:51.255",
+      "dateStarted": "2019-02-18 19:31:35.542",
+      "dateFinished": "2019-02-18 19:31:35.738",
       "status": "FINISHED",
       "progressUpdateIntervalMs": 500
     },
     {
       "text": "import org.bytedeco.javacpp.opencv_core.Point\n\ndef drawBoundingBox(pt1: Point, pt2: Point, src: String, dst: String) = {\n  import org.bytedeco.javacpp.opencv_imgcodecs.imread\n  import org.bytedeco.javacpp.opencv_imgcodecs.imwrite\n  import org.bytedeco.javacpp.opencv_core.Scalar\n  import org.bytedeco.javacpp.opencv_imgproc._\n\n  val image = imread(src)\n  val white = new Scalar(255, 255, 255, 0)\n  val black = new Scalar(0, 0, 0, 0)\n  rectangle(image, pt1, pt2, black, 3, LINE_8, 0)\n  rectangle(image, pt1, pt2, white, 1, LINE_8, 0)\n\n  imwrite(dst, image)\n}\n",
       "user": "anonymous",
-      "dateUpdated": "2019-02-14 18:33:19.287",
+      "dateUpdated": "2019-02-18 19:31:35.742",
       "config": {
         "colWidth": 12,
         "fontSize": 9,
@@ -58,15 +58,15 @@
       "jobName": "paragraph_1550168316325_-8627201",
       "id": "20190214-181836_1841467659",
       "dateCreated": "2019-02-14 18:18:36.325",
-      "dateStarted": "2019-02-14 18:33:19.322",
-      "dateFinished": "2019-02-14 18:33:19.401",
+      "dateStarted": "2019-02-18 19:31:35.764",
+      "dateFinished": "2019-02-18 19:31:35.842",
       "status": "FINISHED",
       "progressUpdateIntervalMs": 500
     },
     {
-      "text": "import java.io.File\n\ndef listBuckets(): List[String] = {\n  import scala.collection.JavaConverters._\n  import com.amazonaws.services.s3.AmazonS3Client\n \n  val s3 = AmazonS3Client.builder().withRegion(\"us-east-1\").build()\n  val buckets = s3.listBuckets.asScala\n  \n  buckets.map(_.getName).toList\n}\n\ndef showImage(file: File) = {\n  import java.io._\n  import java.util._\n  val fis = new FileInputStream(file)\n \n  val data = Array.fill[Byte](file.length.toInt)(0)\n  fis.read(data)\n  fis.close\n \n  val encoded_string = Base64.getEncoder.encodeToString(data)\n  val filename = file.getName\n  print(s\"<img title='$filename' src='data:image/jpeg;base64,$encoded_string' style='float:left;padding:5px;height:224px;width:224px' />\")\n}\n\ndef showFilesFromS3(bucketName: String, count: Int) {\n  import com.amazonaws.services.s3.model._\n  import java.io._\n  import java.util._\n  import scala.collection.JavaConverters._\n  import com.amazonaws.services.s3.transfer._\n  import com.amazonaws.services.s3.AmazonS3Client\n\n  val s3 = AmazonS3Client.builder().withRegion(\"us-east-1\").build()\n  val buckets = s3.listBuckets.asScala\n\n  buckets.filter(\n    _.getName == bucketName    \n  ).map(\n    (b) => { \n      val objects = s3.listObjects(b.getName)\n      objects.getObjectSummaries.asScala.map(\n        (f) => f.getKey\n      ).filter(\n        (f) => f.startsWith(\"validation\") && f.endsWith(\".jpg\")     \n      ).take(count).par.map(\n        (f) => {\n          val out = new File(\"/tmp/\" + b.getName + \"/\" + f)\n          \n          //if (!out.exists) {\n            val dl = TransferManagerBuilder\n              .standard\n              .withS3Client(s3)\n              .build()\n              .download(b.getName, f, out)\n            (Some(dl), out)\n          //} else {\n          //  (None, out)\n          //}\n      }\n    ).map(\n      (r) => {\n        r._1 match {\n          case Some(dl) => dl.waitForCompletion\n          case _ => {}\n        }\n\n        resizeImage(r._2.getAbsolutePath, r._2.getAbsolutePath, 224, 224)\n        \n        r._2\n      }\n    ).map(\n      (src) => {\n          drawBoundingBox(new Point(10, 10), new Point(100, 100), src.getAbsolutePath, src.getAbsolutePath)\n          \n          src\n      }\n    ).map(\n      showImage\n    )\n  })\n}",
+      "text": "import java.io.File\n\ndef listBuckets(): List[String] = {\n  import scala.collection.JavaConverters._\n  import com.amazonaws.services.s3.AmazonS3Client\n \n  val s3 = AmazonS3Client.builder().withRegion(\"us-east-1\").build()\n  val buckets = s3.listBuckets.asScala\n  \n  buckets.map(_.getName).toList\n}\n\ndef showImage(file: File, callback: () => String) = {\n  import java.io._\n  import java.util._\n  val fis = new FileInputStream(file)\n \n  val data = Array.fill[Byte](file.length.toInt)(0)\n  fis.read(data)\n  fis.close\n \n  val encoded_string = Base64.getEncoder.encodeToString(data)\n  val cb = callback()\n  val filename = file.getName\n  print(s\"\"\"<div style='float:left;padding:5px'>\n      <img title='$filename' src='data:image/jpeg;base64,$encoded_string' style='height:224px;width:224px' />\n      $cb\n    </div>\n  \"\"\")\n}\n\ndef showFilesFromS3(bucketName: String, count: Int) {\n  import com.amazonaws.services.s3.model._\n  import java.io._\n  import java.util._\n  import scala.collection.JavaConverters._\n  import com.amazonaws.services.s3.transfer._\n  import com.amazonaws.services.s3.AmazonS3Client\n\n  val s3 = AmazonS3Client.builder().withRegion(\"us-east-1\").build()\n  val buckets = s3.listBuckets.asScala\n\n  buckets.filter(\n    _.getName == bucketName    \n  ).map(\n    (b) => { \n      val objects = s3.listObjects(b.getName)\n      objects.getObjectSummaries.asScala.map(\n        (f) => f.getKey\n      ).filter(\n        (f) => f.startsWith(\"validation\") && f.endsWith(\".jpg\")     \n      ).take(count).par.map(\n        (f) => {\n          val out = new File(\"/tmp/\" + b.getName + \"/\" + f)\n          \n          //if (!out.exists) {\n            val dl = TransferManagerBuilder\n              .standard\n              .withS3Client(s3)\n              .build()\n              .download(b.getName, f, out)\n            (Some(dl), out)\n          //} else {\n          //  (None, out)\n          //}\n      }\n    ).map(\n      (r) => {\n        r._1 match {\n          case Some(dl) => dl.waitForCompletion\n          case _ => {}\n        }\n\n        resizeImage(r._2.getAbsolutePath, 224, 224)\n        \n        r._2\n      }\n    ).map(\n      (src) => {\n          drawBoundingBox(new Point(10, 10), new Point(100, 100), src.getAbsolutePath, src.getAbsolutePath)\n          \n          src\n      }\n    ).map(\n      showImage(_, () => \"\")\n    )\n  })\n}",
       "user": "anonymous",
-      "dateUpdated": "2019-02-14 18:33:22.793",
+      "dateUpdated": "2019-02-18 19:31:35.864",
       "config": {
         "colWidth": 12,
         "fontSize": 9,
@@ -89,15 +89,15 @@
       "jobName": "paragraph_1550006400682_-724854133",
       "id": "20190212-212000_1513042490",
       "dateCreated": "2019-02-12 21:20:00.682",
-      "dateStarted": "2019-02-14 18:33:22.801",
-      "dateFinished": "2019-02-14 18:33:23.012",
+      "dateStarted": "2019-02-18 19:31:35.880",
+      "dateFinished": "2019-02-18 19:31:36.107",
       "status": "FINISHED",
       "progressUpdateIntervalMs": 500
     },
     {
       "text": "println(\"%html\")\nval selection = z.select(\"\", listBuckets.map((b) => (b, b)).sorted)\nval count = z.select(\"4\", List(\"4\", \"8\", \"16\").map((c) => (c, c)))\n\nif (selection != \"\") {\n  println(s\"<h5>$selection</h5>\")\n  showFilesFromS3(selection + \"\", (count + \"\").toInt)\n}",
       "user": "anonymous",
-      "dateUpdated": "2019-02-14 18:33:26.096",
+      "dateUpdated": "2019-02-18 19:31:36.179",
       "config": {
         "colWidth": 6,
         "fontSize": 9,
@@ -125,8 +125,39 @@
       "jobName": "paragraph_1550090515820_12988636",
       "id": "20190213-204155_639914255",
       "dateCreated": "2019-02-13 20:41:55.823",
-      "dateStarted": "2019-02-14 18:33:26.168",
-      "dateFinished": "2019-02-14 18:33:35.601",
+      "dateStarted": "2019-02-18 19:31:36.193",
+      "dateFinished": "2019-02-18 19:31:42.503",
+      "status": "ERROR",
+      "progressUpdateIntervalMs": 500
+    },
+    {
+      "text": "print(\"%html \")\nval model_name = \"kids_model_1\"\nval root = \"/data/models/\" + model_name + \"/validation_data\"\nval classes = new java.io.File(root).listFiles.filter(\n    _.isDirectory).map(_.toString).map(_.split(\"/\")).map(_.last)\n    \n// for some reason this training set was no alphabetical\nclasses.reverse.map(\n   (c) => {\n        print(\"<h3>\" + c + \"</h3>\")\n        val images = util.Random.shuffle(\n           new java.io.File(root + \"/\" + c).listFiles.filter(\n               !_.isDirectory\n           ).toList\n        ).take(20).map(\n           (i) => { \n               showImage(i, () => {\n                   val filename = i.getAbsolutePath.replace(\"/validation_data/\", \"/validation_batch_output/\")  + \".out\"\n                   import java.util.Scanner\n                   import java.io.File\n                   val filedata = new Scanner(new File(filename)).useDelimiter(\"\\\\Z\").next()\n                   val prefix = \"{\\\"prediction\\\": [\"\n                   val data = filedata.substring(prefix.length, filedata.length - 2).split(\", \")\n                   val numbers = data.map(_.toFloat)\n                   val max = numbers.reduceLeft(_ max _)\n                   \n                   classes.zip(numbers).map(\n                        (tuple) => {\n                            if (tuple._2 == max) {\n                                if (tuple._1 == c) {\n                                  \"<p style='color:green'><b>\" + tuple._1 + \"*:</b> \" + tuple._2 + \"</p>\"\n                                } else {\n                                  \"<p><b style='color:red'>\" + tuple._1 + \"*:</b> \" + tuple._2 + \"</p>\"\n                                }\n                            } else {\n                                \"<p><b>\" + tuple._1 + \":</b> \" + tuple._2 + \"</p>\"\n                            }\n                        }\n                   ).mkString(\"\\n\")\n                })\n           }\n       )\n       \n       images\n   }    \n)",
+      "user": "anonymous",
+      "dateUpdated": "2019-02-18 19:53:46.076",
+      "config": {
+        "results": {},
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": true,
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {},
+      "apps": [],
+      "jobName": "paragraph_1550161306913_-850218732",
+      "id": "20190214-162146_918391079",
+      "dateCreated": "2019-02-14 16:21:46.913",
+      "dateStarted": "2019-02-18 19:53:46.108",
+      "dateFinished": "2019-02-18 19:53:46.484",
       "status": "FINISHED",
       "progressUpdateIntervalMs": 500
     },
@@ -139,13 +170,13 @@
         "params": {},
         "forms": {}
       },
-      "results": {},
       "apps": [],
-      "jobName": "paragraph_1550161306913_-850218732",
-      "id": "20190214-162146_918391079",
-      "dateCreated": "2019-02-14 16:21:46.913",
+      "jobName": "paragraph_1550517244853_-1256282449",
+      "id": "20190218-191404_981777086",
+      "dateCreated": "2019-02-18 19:14:04.853",
       "status": "READY",
-      "progressUpdateIntervalMs": 500
+      "progressUpdateIntervalMs": 500,
+      "results": {}
     }
   ],
   "name": "Model Quality",

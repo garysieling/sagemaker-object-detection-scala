@@ -3,7 +3,7 @@
     {
       "text": "import java.io.File\n\n// https://stackoverflow.com/questions/2637643/how-do-i-list-all-files-in-a-subdirectory-in-scala\ndef getFileTree(f: File): Stream[File] =\n  f #:: (if (f.isDirectory) f.listFiles().toStream.flatMap(getFileTree)\n  else Stream.empty)\n\ndef resizeImage(width: Int, height: Int)(src: File): File = {\n  import com.sksamuel.scrimage._\n  import com.sksamuel.scrimage.nio.JpegWriter\n\n  val tempFile = File.createTempFile(\"/tmp/\", \".jpg\");\n  tempFile.deleteOnExit();\n\n  Image.fromFile(\n    src\n  ).scaleTo(\n    width, height\n  ).output(\n    tempFile\n  )(JpegWriter()) // specified Jpeg\n  \n  tempFile\n}\n\ndef resizeImages(src: String, dst: String, width: Int, height: Int): List[File] = {\n    val images = getFileTree(\n      new File(src)\n    ).filter(\n      _.getAbsolutePath != src\n    ).filter(\n      !_.isDirectory\n    ).toList\n\n    {\n      import sys.process._\n      (\"rm -rf \" + dst).!!\n    }\n\n    images.map(\n      (path) => resizeImage(width, height)(path)\n    )\n  }",
       "user": "anonymous",
-      "dateUpdated": "2019-02-14 21:35:18.046",
+      "dateUpdated": "2019-02-14 21:41:01.474",
       "config": {
         "results": {},
         "colWidth": 12,
@@ -26,15 +26,15 @@
       "jobName": "paragraph_1550006395102_38793653",
       "id": "20190212-211955_467801363",
       "dateCreated": "2019-02-12 21:19:55.102",
-      "dateStarted": "2019-02-14 21:35:18.063",
-      "dateFinished": "2019-02-14 21:35:18.269",
+      "dateStarted": "2019-02-14 21:41:01.518",
+      "dateFinished": "2019-02-14 21:41:02.077",
       "status": "FINISHED",
       "progressUpdateIntervalMs": 500
     },
     {
       "text": "import org.bytedeco.javacpp.opencv_core.Point\n\ndef drawBoundingBox(pt1: Point, pt2: Point, src: String, dst: String) = {\n  import org.bytedeco.javacpp.opencv_imgcodecs.imread\n  import org.bytedeco.javacpp.opencv_imgcodecs.imwrite\n  import org.bytedeco.javacpp.opencv_core.Scalar\n  import org.bytedeco.javacpp.opencv_imgproc._\n\n  val image = imread(src)\n  val white = new Scalar(255, 255, 255, 0)\n  val black = new Scalar(0, 0, 0, 0)\n  rectangle(image, pt1, pt2, black, 3, LINE_8, 0)\n  rectangle(image, pt1, pt2, white, 1, LINE_8, 0)\n\n  imwrite(dst, image)\n}\n",
       "user": "anonymous",
-      "dateUpdated": "2019-02-14 21:35:20.931",
+      "dateUpdated": "2019-02-14 21:41:03.961",
       "config": {
         "colWidth": 12,
         "fontSize": 9,
@@ -57,15 +57,15 @@
       "jobName": "paragraph_1550175267165_1214170292",
       "id": "20190214-201427_957859832",
       "dateCreated": "2019-02-14 20:14:27.165",
-      "dateStarted": "2019-02-14 21:35:20.935",
-      "dateFinished": "2019-02-14 21:35:21.011",
+      "dateStarted": "2019-02-14 21:41:04.013",
+      "dateFinished": "2019-02-14 21:41:04.302",
       "status": "FINISHED",
       "progressUpdateIntervalMs": 500
     },
     {
       "text": "def showImage(file: File) = {\n  import java.io._\n  import java.util._\n  val fis = new FileInputStream(file)\n \n  val data = Array.fill[Byte](file.length.toInt)(0)\n  fis.read(data)\n  fis.close\n \n  val encoded_string = Base64.getEncoder.encodeToString(data)\n  val filename = file.getName\n  print(s\"<img title='$filename' src='data:image/jpeg;base64,$encoded_string' style='float:left;padding:5px;height:224px;width:224px' />\")\n}\n\n",
       "user": "anonymous",
-      "dateUpdated": "2019-02-14 21:35:24.046",
+      "dateUpdated": "2019-02-14 21:41:05.658",
       "config": {
         "colWidth": 12,
         "fontSize": 9,
@@ -88,8 +88,8 @@
       "jobName": "paragraph_1550175305877_-560432770",
       "id": "20190214-201505_1112003943",
       "dateCreated": "2019-02-14 20:15:05.877",
-      "dateStarted": "2019-02-14 21:35:24.063",
-      "dateFinished": "2019-02-14 21:35:24.183",
+      "dateStarted": "2019-02-14 21:41:05.695",
+      "dateFinished": "2019-02-14 21:41:05.921",
       "status": "FINISHED",
       "progressUpdateIntervalMs": 500
     },
@@ -125,9 +125,9 @@
       "progressUpdateIntervalMs": 500
     },
     {
-      "text": "println(\"%html\")\n\ndef showForm = {\n  def showLocalFiles(dataset: String, selection: String, count: Int) = {\n    new File(\"/data/images/\" + dataset + \"/\" + selection)\n      .listFiles\n      .filter(!_.isDirectory)\n      .take(count)\n      .map(resizeImage(224, 224)(_))\n      .map(showImage)\n  }\n  \n  import scala.collection.JavaConversions._\n  import java.io.File\n  val datasets = new File(\"/data/images/\").listFiles().filter(_.isDirectory).toList\n\n  def listTags(dataset: String): Array[(String, String)] = {\n    try {\n      new File(\"/data/images/\" + dataset).listFiles().filter(_.isDirectory).map(\n        (f) => (f.getName, f.getName)\n     )\n    } catch {\n        case _: Throwable => Array[(String, String)]()\n    }\n  }\n\n  val dataset = z.select(\"dataset\", \"\", datasets.map((b) => (b.getName, b.getName)))\n  if (dataset.toString != \"\") {\n    println(\"<br />\")\n    val selection = z.select(\"tag\", \"\", listTags(dataset.toString))\n    \n    println(\"<br />\")\n    val count = z.select(\"4\", List(\"4\", \"8\", \"16\").map((c) => (c, c)))\n\n    if (selection != \"\") {\n      println(s\"<h5>Dataset: $dataset / Tag: $selection</h5>\")\n      showLocalFiles(dataset + \"\", selection + \"\", (count + \"\").toInt)\n    }\n  }\n}\n\nshowForm",
+      "text": "println(\"%html\")\n\ndef showForm = {\n  def showLocalFiles(dataset: String, selection: String, count: Int) = {\n    util.Random.shuffle(\n      new File(\"/data/images/\" + dataset + \"/\" + selection)\n        .listFiles\n        .filter(!_.isDirectory)\n        .take(count)\n        .toList\n      )\n      .map(resizeImage(224, 224)(_))\n      .map(showImage)\n  }\n  \n  import scala.collection.JavaConversions._\n  import java.io.File\n  val datasets = new File(\"/data/images/\").listFiles().filter(_.isDirectory).toList\n\n  def listTags(dataset: String): Array[(String, String)] = {\n    try {\n      new File(\"/data/images/\" + dataset).listFiles().filter(_.isDirectory).map(\n        (f) => (f.getName, f.getName)\n     )\n    } catch {\n        case _: Throwable => Array[(String, String)]()\n    }\n  }\n\n  val dataset = z.select(\"dataset\", \"\", datasets.map((b) => (b.getName, b.getName)))\n  if (dataset.toString != \"\") {\n    println(\"<br />\")\n    val selection = z.select(\"tag\", \"\", listTags(dataset.toString))\n    \n    println(\"<br />\")\n    val count = z.select(\"4\", List(\"4\", \"8\", \"16\").map((c) => (c, c)))\n\n    if (selection != \"\") {\n      println(s\"<h5>Dataset: $dataset / Tag: $selection</h5>\")\n      showLocalFiles(dataset + \"\", selection + \"\", (count + \"\").toInt)\n    }\n  }\n}\n\nshowForm",
       "user": "anonymous",
-      "dateUpdated": "2019-02-14 21:38:31.211",
+      "dateUpdated": "2019-02-15 00:18:21.911",
       "config": {
         "colWidth": 12,
         "fontSize": 9,
@@ -147,8 +147,8 @@
         "params": {
           "4": "8",
           "": "household",
-          "dataset": "kids",
-          "tag": "photos"
+          "dataset": "household",
+          "tag": "stone exterior walls"
         },
         "forms": {}
       },
@@ -157,8 +157,8 @@
       "jobName": "paragraph_1550175354172_-16566078",
       "id": "20190214-201554_1963199708",
       "dateCreated": "2019-02-14 20:15:54.172",
-      "dateStarted": "2019-02-14 21:38:31.237",
-      "dateFinished": "2019-02-14 21:38:31.474",
+      "dateStarted": "2019-02-15 00:18:21.956",
+      "dateFinished": "2019-02-15 00:18:22.461",
       "status": "FINISHED",
       "progressUpdateIntervalMs": 500
     },
@@ -171,13 +171,13 @@
         "params": {},
         "forms": {}
       },
+      "results": {},
       "apps": [],
       "jobName": "paragraph_1550175568930_422656769",
       "id": "20190214-201928_206562606",
       "dateCreated": "2019-02-14 20:19:28.930",
       "status": "READY",
-      "progressUpdateIntervalMs": 500,
-      "results": {}
+      "progressUpdateIntervalMs": 500
     }
   ],
   "name": "Dataset Quality",
